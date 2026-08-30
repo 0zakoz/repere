@@ -54,18 +54,21 @@ fun JournalScreen(
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Suivi Muscu", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text("Ton carnet, sans friction.", color = Muted)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Suivi Muscu", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        KawaiiHeaderDecoration()
+                    }
+                    Text("Ton carnet, sans friction.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = onSettings) { Icon(Icons.Default.Settings, "Réglages") }
             }
         }
         if (pausedDraft != null) {
             item {
-                ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = Cyan.copy(alpha = .10f))) {
+                ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = appVisuals.pausedContainer)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.PauseCircle, null, tint = Cyan)
+                            Icon(Icons.Default.PauseCircle, null, tint = appVisuals.info)
                             Spacer(Modifier.width(8.dp))
                             Text("Séance en pause", fontWeight = FontWeight.Bold)
                         }
@@ -73,7 +76,7 @@ fun JournalScreen(
                             "Séance ${pausedDraft.templateNameSnapshot} • " +
                                 "${pausedDraft.exercises.sumOf { ex -> ex.sets.count { it.completed } }} série(s) validée(s)",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Muted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Button(onClick = viewModel::resumeDraft, modifier = Modifier.fillMaxWidth()) {
                             Icon(Icons.Default.PlayArrow, null)
@@ -86,13 +89,13 @@ fun JournalScreen(
         }
         if (program == null) {
             item {
-                ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = Orange.copy(alpha = .10f))) {
+                ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = appVisuals.warningContainer)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                         Text("Aucun programme actif", fontWeight = FontWeight.Bold)
                         Text(
                             "Sélectionne un programme existant ou crée-en un pour retrouver la prochaine séance suggérée.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Muted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         OutlinedButton(onClick = onOpenPrograms, modifier = Modifier.fillMaxWidth()) {
                             Icon(Icons.Default.AccountTree, null)
@@ -105,9 +108,9 @@ fun JournalScreen(
         }
         if (suggested != null) {
             item {
-                ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = Lime.copy(alpha = .12f))) {
+                ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = appVisuals.activeContainer)) {
                     Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("PROCHAINE SÉANCE", style = MaterialTheme.typography.labelMedium, color = Lime)
+                        Text("PROCHAINE SÉANCE", style = MaterialTheme.typography.labelMedium, color = appVisuals.success)
                         Text(
                             "${program?.name.orEmpty()} • Séance ${suggested.name}",
                             style = MaterialTheme.typography.headlineSmall,
@@ -136,16 +139,16 @@ fun JournalScreen(
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Historique", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                Text("${history.size} séance(s)", color = Muted)
+                Text("${history.size} séance(s)", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (history.isEmpty()) {
             item {
                 Card {
                     Column(Modifier.fillMaxWidth().padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.History, null, tint = Muted)
+                        Icon(Icons.Default.History, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
-                        Text("Ta première séance apparaîtra ici.", color = Muted)
+                        Text("Ta première séance apparaîtra ici.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -160,7 +163,7 @@ fun JournalScreen(
                             "${formatWorkoutDateTime(log)} • ${formatWorkoutDuration(log)} • $count séries" +
                                 log.programNameSnapshot?.let { " • $it" }.orEmpty(),
                             style = MaterialTheme.typography.bodySmall,
-                            color = Muted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         if (log.note.isNotBlank()) Text(log.note, maxLines = 1, style = MaterialTheme.typography.bodySmall)
                     }
@@ -210,7 +213,7 @@ fun JournalScreen(
                     Text(
                         "Une séance différente de la suggestion sera enregistrée hors programme.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Muted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },

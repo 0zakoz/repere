@@ -25,8 +25,8 @@ pilotent les écrans et boîtes de dialogue.
 
 ### Couche application
 
-- `MainActivity.kt` assemble le thème, la barre de navigation, les lanceurs du Storage Access
-  Framework et les dialogues de sauvegarde/restauration.
+- `MainActivity.kt` observe les préférences d’apparence, assemble le thème, la barre de
+  navigation, les lanceurs du Storage Access Framework et les dialogues de réglages.
 - `MainViewModel.kt` contient les mutations métier, le cycle des programmes, la gestion du
   brouillon, les règles de suppression, le poids et les agrégations de tendances.
 - `SuiviMuscuApplication.kt` construit `AppDatabase` et `AppRepository` sans conteneur DI.
@@ -60,7 +60,8 @@ Room et la version du JSON sont donc indépendantes.
 - `LibraryScreen.kt` : CRUD, archivage et activation des éléments de bibliothèque.
 - `Charts.kt` : graphiques Canvas réutilisés pour les exercices et barres musculaires.
 - `MuscleFigure.kt` : carte musculaire vectorielle dessinée en Compose Canvas.
-- `Theme.kt` : palette sombre et thème Material 3.
+- `Theme.kt` : dix variantes Material 3, formes, typographies et jetons visuels sémantiques.
+- `AppearanceSettings.kt` : galerie des cinq thèmes et choix clair/sombre/système.
 
 Les graphiques n’utilisent aucune bibliothèque externe. Les calculs testables sont placés hors
 des composables, principalement dans `MainViewModel.kt` et `Charts.kt`.
@@ -85,12 +86,18 @@ par le dialogue de sortie de cet écran.
 - JDK 17, Gradle 9.5, Android Gradle Plugin 9.3.0 et Kotlin 2.3.21 ;
 - `compileSdk`/`targetSdk` 36, `minSdk` 26 ;
 - Compose BOM 2026.06.00, Lifecycle, coroutines, kotlinx.serialization et Room ;
-- Material 3 sombre, couleurs lime/cyan et contrôles tactiles adaptés au téléphone ;
+- Material 3 avec cinq identités claires/sombres, couleurs étendues sémantiques et contrôles
+  tactiles adaptés au téléphone ;
 - aucune permission Internet dans le manifeste ;
 - `android:allowBackup="false"` : la portabilité repose sur la sauvegarde JSON explicite.
 
 Les versions exactes déclarées dans `app/build.gradle.kts` et le Gradle Wrapper restent les
 sources de vérité.
+
+Les préférences de thème sont stockées séparément dans Preferences DataStore par
+`AppearanceRepository`. Elles ne traversent pas `MainViewModel` et ne font pas partie de
+`AppState`, des sauvegardes ou des exports. Les polices Fredoka et Nunito sont embarquées avec
+leurs licences OFL afin de rester disponibles hors ligne.
 
 ## Points d’attention
 

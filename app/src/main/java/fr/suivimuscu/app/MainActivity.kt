@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.suivimuscu.app.data.CsvExporter
 import fr.suivimuscu.app.data.CompleteMarkdownExporter
 import fr.suivimuscu.app.data.WeightCsvExporter
+import fr.suivimuscu.app.data.AppearancePreferences
 import fr.suivimuscu.app.ui.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -33,7 +34,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            SuiviMuscuTheme {
+            val appearance by (application as SuiviMuscuApplication).appearanceRepository.preferences
+                .collectAsStateWithLifecycle(initialValue = AppearancePreferences())
+            SuiviMuscuTheme(appearance) {
                 val state by viewModel.state.collectAsStateWithLifecycle()
                 val tab by viewModel.tab.collectAsStateWithLifecycle()
                 if (state == null) {
@@ -41,7 +44,7 @@ class MainActivity : ComponentActivity() {
                         CircularProgressIndicator()
                     }
                 } else {
-                    AppRoot(viewModel, tab)
+                    AppRoot(viewModel, tab, appearance)
                 }
             }
         }
@@ -49,11 +52,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun AppRoot(viewModel: MainViewModel, tab: MainTab) {
+private fun AppRoot(viewModel: MainViewModel, tab: MainTab, appearance: AppearancePreferences) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val appState = state ?: return
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val appearanceRepository = (context.applicationContext as SuiviMuscuApplication).appearanceRepository
     val snackbar = remember { SnackbarHostState() }
     var pendingRestore by remember { mutableStateOf<String?>(null) }
 
@@ -199,12 +203,23 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab) {
         AlertDialog(
             onDismissRequest = { showSettings = false },
             icon = { Icon(Icons.Default.Settings, null) },
-            title = { Text("Données et fichiers") },
+            title = { Text("Réglages") },
             text = {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    AppearanceSettings(
+                        appearance = appearance,
+                        onThemeSelected = { theme -> scope.launch { appearanceRepository.setTheme(theme) } },
+                        onModeSelected = { mode -> scope.launch { appearanceRepository.setMode(mode) } },
+                    )
+                    HorizontalDivider()
+                    Text(
+                        "Données et fichiers",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    )
                     ListItem(
                         headlineContent = { Text("Exporter les performances") },
                         supportingContent = { Text("CSV, une ligne par série") },

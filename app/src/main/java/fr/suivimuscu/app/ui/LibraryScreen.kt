@@ -35,8 +35,11 @@ fun LibraryScreen(
 ) {
     Column(modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 14.dp)) {
-            Text("Bibliothèque", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text("Tout reste modifiable et archivable.", color = Muted)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Bibliothèque", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                KawaiiHeaderDecoration()
+            }
+            Text("Tout reste modifiable et archivable.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         ScrollableTabRow(selectedTabIndex = selectedTab.ordinal, edgePadding = 12.dp) {
             LibraryTab.entries.forEach { item ->
@@ -153,7 +156,7 @@ fun ExerciseEditDialog(
                 }
                 item {
                     Text("Muscles sollicités", fontWeight = FontWeight.Bold)
-                    Text("P : ×1 • S : ×0,5 • T : ×0,25", style = MaterialTheme.typography.bodySmall, color = Muted)
+                    Text("P : ×1 • S : ×0,5 • T : ×0,25", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 items(muscles, key = { it.id }) { muscle ->
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -461,12 +464,12 @@ private fun ProgramRow(
 ) {
     val container = when {
         program.archived -> MaterialTheme.colorScheme.surface.copy(alpha = .45f)
-        program.active -> Lime.copy(alpha = .14f)
+        program.active -> appVisuals.activeContainer
         else -> MaterialTheme.colorScheme.surface
     }
     Card(
         colors = CardDefaults.cardColors(containerColor = container),
-        border = if (program.active) androidx.compose.foundation.BorderStroke(1.dp, Lime) else null,
+        border = if (program.active) androidx.compose.foundation.BorderStroke(1.dp, appVisuals.success) else null,
     ) {
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -475,7 +478,7 @@ private fun ProgramRow(
                         Text(
                             program.name,
                             fontWeight = FontWeight.Bold,
-                            color = if (program.archived) Muted else MaterialTheme.colorScheme.onSurface,
+                            color = if (program.archived) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                         )
                         if (program.active) {
                             Spacer(Modifier.width(8.dp))
@@ -487,9 +490,9 @@ private fun ProgramRow(
                             )
                         }
                     }
-                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Muted)
+                    Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (program.archived) {
-                        Text("ARCHIVÉ", style = MaterialTheme.typography.labelSmall, color = Orange)
+                        Text("ARCHIVÉ", style = MaterialTheme.typography.labelSmall, color = appVisuals.warning)
                     }
                 }
                 IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, "Modifier") }
@@ -595,9 +598,9 @@ private fun LibraryRow(
     Card(colors = CardDefaults.cardColors(containerColor = if (archived) MaterialTheme.colorScheme.surface.copy(alpha = .45f) else MaterialTheme.colorScheme.surface)) {
         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(title, fontWeight = FontWeight.Bold, color = if (archived) Muted else MaterialTheme.colorScheme.onSurface)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Muted)
-                if (archived) Text("ARCHIVÉ", style = MaterialTheme.typography.labelSmall, color = Orange)
+                Text(title, fontWeight = FontWeight.Bold, color = if (archived) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (archived) Text("ARCHIVÉ", style = MaterialTheme.typography.labelSmall, color = appVisuals.warning)
             }
             IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, "Modifier") }
             IconButton(onClick = onArchive) {

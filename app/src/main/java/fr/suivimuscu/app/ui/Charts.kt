@@ -31,8 +31,6 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.max
 import kotlin.math.abs
 
-private val seriesColors = listOf(Lime, Cyan, Purple, Orange)
-
 internal data class ChartYRange(val min: Float, val max: Float)
 
 internal fun chartYRange(
@@ -53,17 +51,22 @@ internal fun chartXFraction(timestamp: Long, minTimestamp: Long, maxTimestamp: L
     if (minTimestamp == maxTimestamp) .5f
     else ((timestamp - minTimestamp).toFloat() / (maxTimestamp - minTimestamp)).coerceIn(0f, 1f)
 
-private val heatmapBase = Color(0xFF262B36)
-private val heatmapMid = Color(0xFF6E7F2E)
-private val heatmapMax = Color(0xFFB7F34A)
+private val defaultHeatmapBase = Color(0xFF262B36)
+private val defaultHeatmapMid = Color(0xFF6E7F2E)
+private val defaultHeatmapMax = Color(0xFFB7F34A)
 
 /** Couleur de la carte musculaire pour une intensité [0..1] : gris sombre -> olive -> lime vif, interpolation linéaire. */
-internal fun heatmapColor(fraction: Double): Color {
+internal fun heatmapColor(
+    fraction: Double,
+    low: Color = defaultHeatmapBase,
+    mid: Color = defaultHeatmapMid,
+    high: Color = defaultHeatmapMax,
+): Color {
     val f = fraction.coerceIn(0.0, 1.0)
     return if (f < 0.5) {
-        lerp(heatmapBase, heatmapMid, (f / 0.5).toFloat())
+        lerp(low, mid, (f / 0.5).toFloat())
     } else {
-        lerp(heatmapMid, heatmapMax, ((f - 0.5) / 0.5).toFloat())
+        lerp(mid, high, ((f - 0.5) / 0.5).toFloat())
     }
 }
 
@@ -95,7 +98,7 @@ fun ExerciseCharts(points: List<ExerciseHistoryPoint>, modifier: Modifier = Modi
             onTimestampSelected = { selectedTimestamp = it },
         )
         if (selectedPoints.isNotEmpty()) {
-            Surface(color = Lime.copy(alpha = .08f), shape = MaterialTheme.shapes.medium) {
+            Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = .08f), shape = MaterialTheme.shapes.medium) {
                 Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(formatChartDate(selectedPoints.first().timestamp), fontWeight = FontWeight.Bold)
                     selectedPoints.sortedBy { it.setOrder }.forEach { point ->
@@ -110,7 +113,7 @@ fun ExerciseCharts(points: List<ExerciseHistoryPoint>, modifier: Modifier = Modi
             }
         }
         Text("${points.map { it.date }.distinct().size} séance(s) • touche un graphique pour inspecter la date la plus proche",
-            style = MaterialTheme.typography.bodySmall, color = Muted)
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -122,6 +125,9 @@ private fun MultiSeriesLineChart(
     band: Pair<Float, Float>? = null,
     onTimestampSelected: (Long) -> Unit,
 ) {
+    val visuals = appVisuals
+    val seriesColors = visuals.chartSeries
+    val primary = MaterialTheme.colorScheme.primary
     val minX = values.minOf { it.first }
     val maxX = values.maxOf { it.first }
     val yRange = chartYRange(values.map { it.third }, band)
@@ -135,9 +141,9 @@ private fun MultiSeriesLineChart(
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.End,
             ) {
-                Text(formatAxis(maxY), style = MaterialTheme.typography.labelSmall, color = Muted)
-                Text(formatAxis((minY + maxY) / 2f), style = MaterialTheme.typography.labelSmall, color = Muted)
-                Text(formatAxis(minY), style = MaterialTheme.typography.labelSmall, color = Muted)
+                Text(formatAxis(maxY), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(formatAxis((minY + maxY) / 2f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(formatAxis(minY), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Spacer(Modifier.width(6.dp))
             Canvas(
@@ -155,7 +161,7 @@ private fun MultiSeriesLineChart(
                             }
                         }
                     }
-                    .background(AppSurface)
+                    .background(visuals.chartBackground)
             ) {
                 val left = 8.dp.toPx()
                 val right = size.width - 8.dp.toPx()
@@ -166,14 +172,14 @@ private fun MultiSeriesLineChart(
 
                 band?.let {
                     drawRect(
-                        color = Lime.copy(alpha = .08f),
+                        color = primary.copy(alpha = .08f),
                         topLeft = Offset(left, y(it.second)),
                         size = androidx.compose.ui.geometry.Size(right - left, y(it.first) - y(it.second)),
                     )
                 }
                 repeat(4) { index ->
                     val lineY = top + index * (bottom - top) / 3f
-                    drawLine(Color.White.copy(alpha = .08f), Offset(left, lineY), Offset(right, lineY), 1f)
+                    drawLine(visuals.chartGrid, Offset(left, lineY), Offset(right, lineY), 1f)
                 }
                 values.groupBy { it.second }.toSortedMap().forEach { (order, series) ->
                     val sorted = series.sortedBy { it.first }
@@ -196,12 +202,12 @@ private fun MultiSeriesLineChart(
                 modifier = Modifier.fillMaxWidth().padding(start = 60.dp),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.labelSmall,
-                color = Muted,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
             Row(Modifier.fillMaxWidth().padding(start = 60.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(formatShortDate(minX), style = MaterialTheme.typography.labelSmall, color = Muted)
-                Text(formatShortDate(maxX), style = MaterialTheme.typography.labelSmall, color = Muted)
+                Text(formatShortDate(minX), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(formatShortDate(maxX), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (band != null) {
@@ -210,7 +216,7 @@ private fun MultiSeriesLineChart(
                 modifier = Modifier.fillMaxWidth().padding(start = 60.dp),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.labelSmall,
-                color = Lime,
+                color = MaterialTheme.colorScheme.primary,
             )
         }
         Row(
@@ -227,7 +233,7 @@ private fun MultiSeriesLineChart(
                             .background(seriesColors[(order - 1).mod(seriesColors.size)], CircleShape)
                     )
                     Spacer(Modifier.width(4.dp))
-                    Text("Série $order", style = MaterialTheme.typography.labelSmall, color = Muted)
+                    Text("Série $order", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -246,10 +252,10 @@ fun HorizontalBars(values: List<Pair<String, Double>>, modifier: Modifier = Modi
             Column {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(label, style = MaterialTheme.typography.bodySmall)
-                    Text(String.format(java.util.Locale.FRANCE, "%.1f", value), style = MaterialTheme.typography.bodySmall, color = Lime)
+                    Text(String.format(java.util.Locale.FRANCE, "%.1f", value), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                 }
-                Box(Modifier.fillMaxWidth().height(8.dp).background(Color.White.copy(alpha = .08f))) {
-                    Box(Modifier.fillMaxWidth((value / max).toFloat()).fillMaxHeight().background(Lime))
+                Box(Modifier.fillMaxWidth().height(8.dp).background(MaterialTheme.colorScheme.outline.copy(alpha = .18f))) {
+                    Box(Modifier.fillMaxWidth((value / max).toFloat()).fillMaxHeight().background(MaterialTheme.colorScheme.primary))
                 }
             }
         }
@@ -258,8 +264,8 @@ fun HorizontalBars(values: List<Pair<String, Double>>, modifier: Modifier = Modi
 
 @Composable
 fun EmptyChart(text: String, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().height(130.dp).background(AppSurface), contentAlignment = androidx.compose.ui.Alignment.Center) {
-        Text(text, color = Muted)
+    Box(modifier.fillMaxWidth().height(130.dp).background(appVisuals.chartBackground), contentAlignment = androidx.compose.ui.Alignment.Center) {
+        Text(text, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

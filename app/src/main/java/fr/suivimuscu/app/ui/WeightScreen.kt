@@ -83,8 +83,11 @@ fun WeightScreen(
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Poids", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text("Une mesure quand tu veux, sans jour obligatoire.", color = Muted)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Poids", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        KawaiiHeaderDecoration()
+                    }
+                    Text("Une mesure quand tu veux, sans jour obligatoire.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = onExport) {
                     Icon(Icons.Default.FileDownload, "Exporter les pesées en CSV")
@@ -138,7 +141,7 @@ fun WeightScreen(
                             else -> "Saisis ta première mesure"
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = Muted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                         WeightStepButton("+1", normalizedWeightKg(weightText) != null, Modifier.weight(1f)) { adjust(1.0) }
@@ -175,7 +178,7 @@ fun WeightScreen(
                     feedback?.let {
                         Text(
                             it,
-                            color = if (it.startsWith("Mesure ")) Lime else MaterialTheme.colorScheme.error,
+                            color = if (it.startsWith("Mesure ")) appVisuals.success else MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
@@ -184,7 +187,7 @@ fun WeightScreen(
         }
         item {
             Text("Évolution", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text("Mesures brutes et moyenne des mesures disponibles sur 7 jours.", color = Muted)
+            Text("Mesures brutes et moyenne des mesures disponibles sur 7 jours.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         item {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -287,6 +290,9 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
     val minX = points.minOf { it.timestamp }
     val maxX = points.maxOf { it.timestamp }
     val range = chartYRange(points.flatMap { listOf(it.weightKg.toFloat(), it.average7DaysKg.toFloat()) })
+    val visuals = appVisuals
+    val rawColor = visuals.chartSeries[0]
+    val averageColor = visuals.chartSeries[1]
 
     Card {
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -296,14 +302,14 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.End,
                 ) {
-                    Text(formatAxisWeight(range.max), style = MaterialTheme.typography.labelSmall, color = Muted)
-                    Text(formatAxisWeight((range.min + range.max) / 2f), style = MaterialTheme.typography.labelSmall, color = Muted)
-                    Text(formatAxisWeight(range.min), style = MaterialTheme.typography.labelSmall, color = Muted)
+                    Text(formatAxisWeight(range.max), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(formatAxisWeight((range.min + range.max) / 2f), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(formatAxisWeight(range.min), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Spacer(Modifier.width(7.dp))
                 Canvas(
                     Modifier.weight(1f).fillMaxHeight()
-                        .background(AppSurface)
+                        .background(visuals.chartBackground)
                         .pointerInput(points) {
                             detectTapGestures { offset ->
                                 if (minX == maxX) selectedTimestamp = minX
@@ -325,7 +331,7 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
 
                     repeat(4) { index ->
                         val lineY = top + index * (bottom - top) / 3f
-                        drawLine(Color.White.copy(alpha = .08f), Offset(left, lineY), Offset(right, lineY), 1f)
+                        drawLine(visuals.chartGrid, Offset(left, lineY), Offset(right, lineY), 1f)
                     }
                     fun drawSeries(selector: (BodyWeightTrendPoint) -> Double, color: Color, width: Float) {
                         if (points.size > 1) {
@@ -337,13 +343,13 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
                             drawPath(path, color, style = Stroke(width))
                         }
                     }
-                    drawSeries({ it.weightKg }, Lime, 2.dp.toPx())
-                    drawSeries({ it.average7DaysKg }, Cyan, 3.dp.toPx())
+                    drawSeries({ it.weightKg }, rawColor, 2.dp.toPx())
+                    drawSeries({ it.average7DaysKg }, averageColor, 3.dp.toPx())
                     points.forEach { point ->
-                        drawCircle(Lime, 3.5.dp.toPx(), Offset(x(point.timestamp), y(point.weightKg)))
+                        drawCircle(rawColor, 3.5.dp.toPx(), Offset(x(point.timestamp), y(point.weightKg)))
                     }
                     drawCircle(
-                        Cyan,
+                        averageColor,
                         6.dp.toPx(),
                         Offset(x(selected.timestamp), y(selected.average7DaysKg)),
                         style = Stroke(2.dp.toPx()),
@@ -354,15 +360,15 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
                 Modifier.fillMaxWidth().padding(start = 59.dp),
                 horizontalArrangement = if (minX == maxX) Arrangement.Center else Arrangement.SpaceBetween,
             ) {
-                Text(formatTrendDate(points.first().date), style = MaterialTheme.typography.labelSmall, color = Muted)
-                if (minX != maxX) Text(formatTrendDate(points.last().date), style = MaterialTheme.typography.labelSmall, color = Muted)
+                Text(formatTrendDate(points.first().date), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (minX != maxX) Text(formatTrendDate(points.last().date), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                LegendDot(Lime, "Mesures brutes")
+                LegendDot(rawColor, "Mesures brutes")
                 Spacer(Modifier.width(18.dp))
-                LegendDot(Cyan, "Moyenne 7 jours")
+                LegendDot(averageColor, "Moyenne 7 jours")
             }
-            Surface(color = Lime.copy(alpha = .08f), shape = MaterialTheme.shapes.medium) {
+            Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = .08f), shape = MaterialTheme.shapes.medium) {
                 Row(
                     Modifier.fillMaxWidth().padding(10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -370,12 +376,12 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
                 ) {
                     Column {
                         Text(formatDisplayDate(LocalDate.parse(selected.date)), fontWeight = FontWeight.Bold)
-                        Text("Mesure : ${formatWeightInput(selected.weightKg)} kg", color = Lime)
+                        Text("Mesure : ${formatWeightInput(selected.weightKg)} kg", color = rawColor)
                     }
-                    Text("Moy. 7 j\n${formatWeightInput(selected.average7DaysKg)} kg", color = Cyan)
+                    Text("Moy. 7 j\n${formatWeightInput(selected.average7DaysKg)} kg", color = averageColor)
                 }
             }
-            Text("Touche le graphique pour inspecter une date.", style = MaterialTheme.typography.bodySmall, color = Muted)
+            Text("Touche le graphique pour inspecter une date.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -385,7 +391,7 @@ private fun LegendDot(color: Color, label: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(9.dp).background(color, androidx.compose.foundation.shape.CircleShape))
         Spacer(Modifier.width(5.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall, color = Muted)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

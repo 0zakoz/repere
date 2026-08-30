@@ -43,7 +43,13 @@ Les tests JVM sous `app/src/test` couvrent notamment :
 - rôles musculaires et suppressions en cascade de la Bibliothèque ;
 - saisie du poids, préremplissage, moyenne sur sept jours et CSV ;
 - seed initial, migrations du schéma métier et export CSV ;
-- domaines et contraste des graphiques Canvas.
+- domaines et contraste des graphiques Canvas ;
+- décodage des préférences d’apparence, lisibilité des dix palettes et distinction des séries
+  de graphiques.
+
+Les polices Fredoka et Nunito sous `app/src/main/res/font` proviennent du dépôt officiel Google
+Fonts. Leurs licences OFL sont conservées sous `app/src/main/res/raw` et doivent rester livrées
+avec les fichiers de police.
 
 Il n’existe actuellement aucun test sous `app/src/androidTest`. Pour une modification visuelle
 ou dépendante du système Android, compléter les tests unitaires par une vérification manuelle

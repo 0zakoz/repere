@@ -28,8 +28,11 @@ fun TrendsScreen(state: AppState, viewModel: MainViewModel, modifier: Modifier =
 
     Column(modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 14.dp)) {
-            Text("Tendances", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text("Des données brutes, sans score opaque.", color = Muted)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Tendances", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                KawaiiHeaderDecoration()
+            }
+            Text("Des données brutes, sans score opaque.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         PrimaryTabRow(selectedTabIndex = trendTab.ordinal) {
             Tab(
@@ -99,9 +102,9 @@ private fun ExerciseTrend(state: AppState, viewModel: MainViewModel, weeks: Int?
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column {
                         Text(exercise.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text("${exercise.defaultRepMin}–${exercise.defaultRepMax} reps", color = Lime)
+                        Text("${exercise.defaultRepMin}–${exercise.defaultRepMax} reps", color = appVisuals.success)
                     }
-                    Text("${points.map { it.date }.distinct().size} séance(s)", color = Muted)
+                    Text("${points.map { it.date }.distinct().size} séance(s)", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             item { ExerciseCharts(points) }
@@ -147,7 +150,7 @@ private fun SessionTrend(state: AppState, viewModel: MainViewModel, weeks: Int?)
         if (summaries.isEmpty()) item { EmptyChart("Pas encore de séance terminée") }
         periodStats?.let { stats ->
             item {
-                Card(colors = CardDefaults.cardColors(containerColor = Lime.copy(alpha = .10f))) {
+                Card(colors = CardDefaults.cardColors(containerColor = appVisuals.activeContainer)) {
                     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
@@ -155,10 +158,10 @@ private fun SessionTrend(state: AppState, viewModel: MainViewModel, weeks: Int?)
                                 Text(
                                     weeks?.let { "$it dernières semaines" } ?: "Toutes les séances",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = Muted,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            Text("${stats.sessionCount} séance(s)", color = Lime)
+                            Text("${stats.sessionCount} séance(s)", color = appVisuals.success)
                         }
                         LinearProgressIndicator(
                             progress = { stats.completionRate.toFloat().coerceIn(0f, 1f) },
@@ -169,12 +172,12 @@ private fun SessionTrend(state: AppState, viewModel: MainViewModel, weeks: Int?)
                                 " • ${(stats.completionRate * 100).toInt()} % réalisées"
                         )
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Durée moy. : ${formatDuration(stats.averageDurationSeconds.toLong())}", color = Muted)
-                            Text("RIR moy. : ${stats.averageRir?.let(::formatMetric) ?: "—"}", color = Muted)
+                            Text("Durée moy. : ${formatDuration(stats.averageDurationSeconds.toLong())}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("RIR moy. : ${stats.averageRir?.let(::formatMetric) ?: "—"}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Text(
                             "Repos moyen : ${stats.averageRest?.let { "${it.toInt()} s" } ?: "—"}",
-                            color = Muted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -192,14 +195,14 @@ private fun SessionTrend(state: AppState, viewModel: MainViewModel, weeks: Int?)
                             Text(exercise.exerciseName, fontWeight = FontWeight.SemiBold)
                             Text(
                                 "${formatMetric(exercise.averageCompletedSets)}/${formatMetric(exercise.averagePlannedSets)}",
-                                color = Lime,
+                                color = appVisuals.success,
                             )
                         }
                         LinearProgressIndicator(
                             progress = { ratio.toFloat().coerceIn(0f, 1f) },
                             modifier = Modifier.fillMaxWidth(),
                         )
-                        Text("séries réalisées en moyenne par séance", style = MaterialTheme.typography.bodySmall, color = Muted)
+                        Text("séries réalisées en moyenne par séance", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -212,7 +215,7 @@ private fun SessionTrend(state: AppState, viewModel: MainViewModel, weeks: Int?)
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(formatSessionDate(summary.timestamp), fontWeight = FontWeight.Bold)
-                        Text(formatDuration(summary.durationSeconds), color = Lime)
+                        Text(formatDuration(summary.durationSeconds), color = appVisuals.success)
                     }
                     LinearProgressIndicator(
                         progress = { (summary.completedSets.toFloat() / summary.plannedSets.coerceAtLeast(1)).coerceIn(0f, 1f) },
@@ -220,8 +223,8 @@ private fun SessionTrend(state: AppState, viewModel: MainViewModel, weeks: Int?)
                     )
                     Text("${summary.completedSets}/${summary.plannedSets} séries")
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("RIR moyen : ${summary.averageRir?.let { "%.1f".format(it) } ?: "—"}", color = Muted)
-                        Text("Repos moyen : ${summary.averageRest?.let { "${it.toInt()} s" } ?: "—"}", color = Muted)
+                        Text("RIR moyen : ${summary.averageRir?.let { "%.1f".format(it) } ?: "—"}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Repos moyen : ${summary.averageRest?.let { "${it.toInt()} s" } ?: "—"}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -243,8 +246,8 @@ private fun MuscleTrend(state: AppState, viewModel: MainViewModel, weeks: Int?) 
     ) {
         item {
             Text("Séries pondérées", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text("Principal ×1 • secondaire ×0,5 • tertiaire ×0,25", color = Muted)
-            Text("Semaine du lundi au dimanche", style = MaterialTheme.typography.bodySmall, color = Muted)
+            Text("Principal ×1 • secondaire ×0,5 • tertiaire ×0,25", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Semaine du lundi au dimanche", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         item { HorizontalBars(totals) }
         item {
@@ -283,7 +286,7 @@ private fun MuscleTrend(state: AppState, viewModel: MainViewModel, weeks: Int?) 
                 Card {
                     Row(Modifier.fillMaxWidth().padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Semaine du ${week.weekLabel}")
-                        Text("%.1f séries pondérées".format(total), color = Lime)
+                        Text("%.1f séries pondérées".format(total), color = appVisuals.success)
                     }
                 }
             }

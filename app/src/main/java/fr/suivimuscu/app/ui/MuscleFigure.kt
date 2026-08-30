@@ -167,6 +167,7 @@ fun MuscleFigure(
         val value = stats[muscleId]?.weightedSets ?: 0.0
         return heatmapFraction(value, maxSets)
     }
+    val visuals = appVisuals
 
     Card(modifier = modifier) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -175,7 +176,7 @@ fun MuscleFigure(
                 Text(
                     "Touche une zone pour le détail",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Muted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Box(
@@ -197,6 +198,8 @@ fun MuscleFigure(
                     }
                 }
                 val baseFill = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .35f)
+                val outlineColor = MaterialTheme.colorScheme.outline.copy(alpha = .55f)
+                val selectionColor = visuals.success
                 Canvas(
                     Modifier
                         .fillMaxSize()
@@ -217,8 +220,6 @@ fun MuscleFigure(
                     val ls = layouts ?: return@Canvas
                     val lineWidth = 1.1.dp.toPx() / ls.first().scale
                     val selectionWidth = 2.2.dp.toPx() / ls.first().scale
-                    val outlineColor = Color.White.copy(alpha = .30f)
-
                     fun drawFigure(l: FigureLayout, figure: ParsedFigure) {
                         listOf(false, true).forEach { mirror ->
                             withTransform({
@@ -231,12 +232,12 @@ fun MuscleFigure(
                                     drawPath(path, outlineColor, style = Stroke(lineWidth))
                                 }
                                 figure.regions.forEach { (id, path) ->
-                                    drawPath(path, heatmapColor(fractionOf(id).toDouble()))
+                                    drawPath(path, heatmapColor(fractionOf(id).toDouble(), visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh))
                                     drawPath(path, outlineColor, style = Stroke(lineWidth))
                                 }
                                 figure.lines.forEach { path -> drawPath(path, outlineColor, style = Stroke(lineWidth)) }
                                 figure.regions.forEach { (id, path) ->
-                                    if (id == selectedId) drawPath(path, Lime, style = Stroke(selectionWidth))
+                                    if (id == selectedId) drawPath(path, selectionColor, style = Stroke(selectionWidth))
                                 }
                             }
                         }
@@ -247,8 +248,8 @@ fun MuscleFigure(
                 }
             }
             Row(Modifier.fillMaxWidth()) {
-                Text("Avant", Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelMedium, color = Muted)
-                Text("Dos", Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelMedium, color = Muted)
+                Text("Avant", Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Dos", Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             val selectedKey = selectedId
             val selectedFraction = selectedKey?.let(::fractionOf)
@@ -262,7 +263,11 @@ fun MuscleFigure(
                         .height(9.dp)
                         .background(
                             Brush.horizontalGradient(
-                                listOf(heatmapColor(0.0), heatmapColor(0.5), heatmapColor(1.0)),
+                                listOf(
+                                    heatmapColor(0.0, visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh),
+                                    heatmapColor(0.5, visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh),
+                                    heatmapColor(1.0, visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh),
+                                ),
                             ),
                             RoundedCornerShape(4.dp),
                         ),
@@ -280,18 +285,18 @@ fun MuscleFigure(
                             lineTo(14.dp.toPx(), 0f)
                             close()
                         }
-                        drawPath(tri, Lime)
+                        drawPath(tri, visuals.success)
                     }
                 }
             }
             Row(Modifier.fillMaxWidth()) {
-                Text("Faible", style = MaterialTheme.typography.labelSmall, color = Muted)
+                Text("Faible", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.weight(1f))
-                Text("Élevé", style = MaterialTheme.typography.labelSmall, color = Muted)
+                Text("Élevé", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (selectedName != null && selectedKey != null && selectedFraction != null && selectedFraction > 0f) {
                 val metric = stats.getValue(selectedKey)
-                Surface(color = Lime.copy(alpha = .08f), shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
+                Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = .08f), shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
                     Text(
                         String.format(
                             java.util.Locale.FRANCE,
@@ -306,7 +311,7 @@ fun MuscleFigure(
                     )
                 }
             } else if (selectedName != null) {
-                Text("$selectedName : aucune série pondérée sur la période.", style = MaterialTheme.typography.bodySmall, color = Muted)
+                Text("$selectedName : aucune série pondérée sur la période.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

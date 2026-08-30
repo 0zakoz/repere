@@ -16,6 +16,11 @@ peut en revanche nécessiter une nouvelle version métier, des valeurs par défa
 migration séquentielle. Ne jamais compter sur une réinitialisation de l’application pour faire
 évoluer les données de l’utilisateur.
 
+Le thème et le mode de luminosité sont des préférences propres à l’appareil, stockées dans un
+Preferences DataStore `appearance`. Ils restent volontairement hors d’`AppState` : ils ne
+changent pas les schémas Room ou métier et ne sont ni sauvegardés dans le JSON, ni restaurés,
+ni ajoutés aux exports. Une valeur absente ou inconnue revient à **Original sombre**.
+
 ## Modèle persistant
 
 `AppState` contient :

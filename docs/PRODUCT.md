@@ -97,6 +97,18 @@ La suppression d’un élément jamais utilisé met à jour ses références : e
 modèles, modèles retirés des cycles, muscles retirés des exercices. Un modèle devenu vide peut
 disparaître avec la suppression de son dernier exercice.
 
+### Réglages et apparence
+
+Les réglages proposent cinq thèmes : **Original**, **Kawaii**, **Pastel**, **OLED** et
+**Épuré**. Chacun possède une variante claire et sombre ; le mode **Système** suit le réglage
+Android. Une galerie donne un aperçu des palettes et applique immédiatement le choix, qui est
+conservé localement sur le téléphone.
+
+Les thèmes adaptent les couleurs, formes, typographies, graphiques, cartes musculaires et
+barres système sans changer les parcours. Kawaii ajoute des détails décoratifs discrets et des
+polices rondes embarquées ; OLED utilise un fond réellement noir en mode sombre ; Épuré reste
+minimal avec des accents jaune et bleu pastel.
+
 ### Données et fichiers
 
 L’icône de réglages du Journal ouvre les exports CSV des performances et des pesées, un export
@@ -115,5 +127,5 @@ demande confirmation et remplace l’état local uniquement après décodage et 
 - pas de tests instrumentés ou Compose UI dans le dépôt à ce jour ; les parcours sur téléphone
   sont validés manuellement lorsque nécessaire.
 
-Ces limites décrivent la version 1.5.0. Elles peuvent évoluer si une nouvelle demande le
+Ces limites décrivent la version 1.6.0. Elles peuvent évoluer si une nouvelle demande le
 justifie.

@@ -52,7 +52,8 @@ fun WorkoutScreen(
                 title = {
                     Column {
                         Text("Séance ${workout.templateNameSnapshot}", fontWeight = FontWeight.Bold)
-                        Text(workout.localDate, style = MaterialTheme.typography.bodySmall, color = Muted)
+                        Text(workout.localDate, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        KawaiiHeaderDecoration()
                     }
                 },
                 navigationIcon = {
@@ -95,12 +96,12 @@ fun WorkoutScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    Surface(color = Cyan.copy(alpha = .08f), shape = MaterialTheme.shapes.medium) {
+                    Surface(color = appVisuals.pausedContainer, shape = MaterialTheme.shapes.medium) {
                         Text(
                             "Poids + répétitions requis • RIR facultatif • touche ✓ pour valider. Toute modification invalide la série.",
                             modifier = Modifier.fillMaxWidth().padding(10.dp),
                             style = MaterialTheme.typography.bodySmall,
-                            color = Muted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -245,7 +246,7 @@ private fun RestTimerBar(
         modifier = modifier,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = MaterialTheme.shapes.medium,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Lime),
+        border = androidx.compose.foundation.BorderStroke(1.dp, appVisuals.success),
         shadowElevation = 6.dp,
     ) {
         Row(
@@ -253,7 +254,7 @@ private fun RestTimerBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Icon(Icons.Default.Timer, null, tint = Lime)
+            Icon(Icons.Default.Timer, null, tint = appVisuals.success)
             Column(Modifier.weight(1f)) {
                 Text(
                     "Repos • ${exercise.nameSnapshot}",
@@ -277,9 +278,9 @@ private fun ExerciseLogCard(exercise: LoggedExercise, viewModel: MainViewModel) 
             Row(verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
                     Text(exercise.nameSnapshot, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text("${exercise.repMinSnapshot}–${exercise.repMaxSnapshot} reps", color = Lime)
+                    Text("${exercise.repMinSnapshot}–${exercise.repMaxSnapshot} reps", color = appVisuals.success)
                     if (exercise.instructionSnapshot.isNotBlank()) {
-                        Text(exercise.instructionSnapshot, style = MaterialTheme.typography.bodySmall, color = Muted)
+                        Text(exercise.instructionSnapshot, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 IconButton(onClick = { confirmRemove = true }) {
@@ -318,13 +319,13 @@ private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainVie
         set.weightKg.replace(',', '.').toDoubleOrNull()?.let { it >= 0 } == true
     val repsNumber = set.reps.toIntOrNull()
     val rangeColor = when {
-        repsNumber == null -> Muted
-        repsNumber < exercise.repMinSnapshot -> Orange
-        repsNumber > exercise.repMaxSnapshot -> Cyan
-        else -> Lime
+        repsNumber == null -> MaterialTheme.colorScheme.onSurfaceVariant
+        repsNumber < exercise.repMinSnapshot -> appVisuals.warning
+        repsNumber > exercise.repMaxSnapshot -> appVisuals.info
+        else -> appVisuals.success
     }
     Surface(
-        color = if (set.completed) Lime.copy(alpha = .06f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f),
+        color = if (set.completed) appVisuals.activeContainer.copy(alpha = .55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f),
         shape = MaterialTheme.shapes.medium,
     ) {
         Column(Modifier.padding(9.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -363,15 +364,15 @@ private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainVie
                         if (set.completed) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
                         if (set.completed) "Série validée" else "Valider la série",
                         tint = when {
-                            set.completed -> Lime
+                            set.completed -> appVisuals.success
                             valid -> MaterialTheme.colorScheme.onSurface
-                            else -> Muted
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
                         },
                     )
                 }
                 if (exercise.sets.size > 1) {
                     IconButton(onClick = { viewModel.removeSet(exercise.id, set.id) }) {
-                        Icon(Icons.Default.RemoveCircleOutline, "Supprimer série", tint = Muted)
+                        Icon(Icons.Default.RemoveCircleOutline, "Supprimer série", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -398,11 +399,11 @@ private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainVie
                 ) { Text("+1 rep") }
                 Spacer(Modifier.weight(1f))
                 set.restBeforeSeconds?.let {
-                    Text("repos ${formatSeconds(it)}", style = MaterialTheme.typography.bodySmall, color = Cyan)
+                    Text("repos ${formatSeconds(it)}", style = MaterialTheme.typography.bodySmall, color = appVisuals.info)
                 }
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("RIR", style = MaterialTheme.typography.labelMedium, color = Muted)
+                Text("RIR", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.width(8.dp))
                 (0..3).forEach { rir ->
                     FilterChip(
