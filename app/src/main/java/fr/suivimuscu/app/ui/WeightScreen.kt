@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -85,7 +86,7 @@ fun WeightScreen(
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Poids", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                        KawaiiHeaderDecoration()
+                        KawaiiHeaderDecoration("🐼")
                     }
                     Text("Une mesure quand tu veux, sans jour obligatoire.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -95,12 +96,24 @@ fun WeightScreen(
             }
         }
         item {
-            Card {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = kawaiiContainer(2, MaterialTheme.colorScheme.surfaceContainerHighest),
+                ),
+            ) {
                 Column(
                     Modifier.fillMaxWidth().padding(14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Ma pesée", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        KawaiiCardMascot("🐼")
+                    }
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = { selectDate(selectedDate.minusDays(1)) }) {
                             Icon(Icons.Default.ChevronLeft, "Jour précédent")
@@ -203,16 +216,22 @@ fun WeightScreen(
         item { BodyWeightChart(trend) }
         if (state.bodyWeights.isNotEmpty()) {
             item { Text("Dernières mesures", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
-            items(
+            itemsIndexed(
                 state.bodyWeights.sortedByDescending { it.date }.take(12),
-                key = { it.id },
-            ) { entry ->
+                key = { _, entry -> entry.id },
+            ) { index, entry ->
                 ListItem(
                     headlineContent = { Text("${formatWeightInput(entry.weightKg)} kg", fontWeight = FontWeight.SemiBold) },
                     supportingContent = {
                         Text(runCatching { formatDisplayDate(LocalDate.parse(entry.date)) }.getOrDefault(entry.date))
                     },
+                    leadingContent = if (appVisuals.showKawaiiDecorations) {
+                        { KawaiiCardMascot(kawaiiMascot(index)) }
+                    } else null,
                     trailingContent = { Icon(Icons.Default.Edit, "Modifier") },
+                    colors = ListItemDefaults.colors(
+                        containerColor = kawaiiContainer(index, MaterialTheme.colorScheme.surface),
+                    ),
                     modifier = Modifier.clickable {
                         runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let(::selectDate)
                     },

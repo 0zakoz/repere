@@ -37,7 +37,7 @@ fun LibraryScreen(
         Column(Modifier.padding(horizontal = 18.dp, vertical = 14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Bibliothèque", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                KawaiiHeaderDecoration()
+                KawaiiHeaderDecoration("🎀")
             }
             Text("Tout reste modifiable et archivable.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -47,8 +47,14 @@ fun LibraryScreen(
                     selected = selectedTab == item,
                     onClick = { onTabSelected(item) },
                     text = {
+                        val emoji = when (item) {
+                            LibraryTab.PROGRAMS -> "🐰"
+                            LibraryTab.TEMPLATES -> "🐼"
+                            LibraryTab.EXERCISES -> "🐱"
+                            LibraryTab.MUSCLES -> "🌸"
+                        }
                         Text(
-                            when (item) {
+                            (if (appVisuals.showKawaiiDecorations) "$emoji " else "") + when (item) {
                                 LibraryTab.PROGRAMS -> "Programmes"
                                 LibraryTab.TEMPLATES -> "Séances"
                                 LibraryTab.EXERCISES -> "Exercices"
@@ -464,8 +470,8 @@ private fun ProgramRow(
 ) {
     val container = when {
         program.archived -> MaterialTheme.colorScheme.surface.copy(alpha = .45f)
-        program.active -> appVisuals.activeContainer
-        else -> MaterialTheme.colorScheme.surface
+        program.active -> kawaiiContainer(program.id.hashCode(), appVisuals.activeContainer)
+        else -> kawaiiContainer(program.id.hashCode(), MaterialTheme.colorScheme.surface)
     }
     Card(
         colors = CardDefaults.cardColors(containerColor = container),
@@ -473,6 +479,7 @@ private fun ProgramRow(
     ) {
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                KawaiiCardMascot(kawaiiMascot(program.id.hashCode()), Modifier.padding(end = 8.dp))
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -595,8 +602,17 @@ private fun LibraryRow(
     deleteDialogText: String = "",
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
-    Card(colors = CardDefaults.cardColors(containerColor = if (archived) MaterialTheme.colorScheme.surface.copy(alpha = .45f) else MaterialTheme.colorScheme.surface)) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = if (archived) {
+                MaterialTheme.colorScheme.surface.copy(alpha = .45f)
+            } else {
+                kawaiiContainer(title.hashCode(), MaterialTheme.colorScheme.surface)
+            },
+        ),
+    ) {
         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            KawaiiCardMascot(kawaiiMascot(title.hashCode()), Modifier.padding(end = 8.dp))
             Column(Modifier.weight(1f)) {
                 Text(title, fontWeight = FontWeight.Bold, color = if (archived) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

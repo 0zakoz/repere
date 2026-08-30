@@ -59,7 +59,7 @@ class ThemeTest {
 
     @Test
     fun expressiveThemesUseSecondaryColorForSuccessStates() {
-        AppThemeId.entries.filterNot { it == AppThemeId.ORIGINAL }.forEach { theme ->
+        AppThemeId.entries.filterNot { it == AppThemeId.ORIGINAL || it == AppThemeId.KAWAII }.forEach { theme ->
             listOf(false, true).forEach { dark ->
                 val definition = themeDefinition(theme, dark)
                 assertEquals("$theme/$dark success role", definition.colors.secondary, definition.visuals.success)
@@ -67,6 +67,44 @@ class ThemeTest {
                     "$theme/$dark primary and success must stay distinct",
                     colorDistance(definition.colors.primary, definition.visuals.success) >= 0.18,
                 )
+            }
+        }
+    }
+
+    @Test
+    fun kawaiiThemeMixesFourReadablePastelSurfaceFamilies() {
+        listOf(false, true).forEach { dark ->
+            val definition = themeDefinition(AppThemeId.KAWAII, dark)
+            val visuals = definition.visuals
+
+            assertEquals("Kawaii surface families", 4, visuals.kawaiiSurfaces.size)
+            assertTrue("Kawaii backdrop", visuals.kawaiiBackdrop.size >= 4)
+            visuals.kawaiiSurfaces.forEachIndexed { index, color ->
+                assertTrue(
+                    "Kawaii/$dark surface $index remains readable",
+                    contrast(definition.colors.onSurface, color) >= 4.5,
+                )
+                visuals.kawaiiSurfaces.drop(index + 1).forEachIndexed { offset, other ->
+                    assertTrue(
+                        "Kawaii/$dark surface colors $index/${index + offset + 1}",
+                        colorDistance(color, other) >= 0.08,
+                    )
+                }
+            }
+            assertTrue(
+                "Kawaii/$dark background must stay chromatic",
+                channelRange(definition.colors.background) >= 0.05f,
+            )
+        }
+    }
+
+    @Test
+    fun kawaiiTokensDoNotLeakIntoOtherThemes() {
+        AppThemeId.entries.filterNot { it == AppThemeId.KAWAII }.forEach { theme ->
+            listOf(false, true).forEach { dark ->
+                val visuals = themeDefinition(theme, dark).visuals
+                assertTrue("$theme/$dark Kawaii surfaces", visuals.kawaiiSurfaces.isEmpty())
+                assertTrue("$theme/$dark Kawaii backdrop", visuals.kawaiiBackdrop.isEmpty())
             }
         }
     }
@@ -82,4 +120,7 @@ class ThemeTest {
             (first.green - second.green).let { it * it } +
             (first.blue - second.blue).let { it * it },
     ).toDouble()
+
+    private fun channelRange(color: Color): Float =
+        max(color.red, max(color.green, color.blue)) - min(color.red, min(color.green, color.blue))
 }

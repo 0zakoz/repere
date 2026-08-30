@@ -1,10 +1,15 @@
 package fr.suivimuscu.app.ui
 
 import android.app.Activity
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -13,6 +18,8 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -20,16 +27,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import fr.suivimuscu.app.data.AppThemeId
 import fr.suivimuscu.app.data.AppearancePreferences
@@ -53,6 +68,8 @@ data class AppVisuals(
     val decorationPrimary: Color,
     val decorationSecondary: Color,
     val showKawaiiDecorations: Boolean,
+    val kawaiiSurfaces: List<Color>,
+    val kawaiiBackdrop: List<Color>,
 )
 
 internal data class AppThemeDefinition(
@@ -147,7 +164,7 @@ private val PureTypography = Typography(
 )
 
 private val OriginalShapes = Shapes()
-private val KawaiiShapes = themedShapes(12, 18, 24, 30, 36)
+private val KawaiiShapes = themedShapes(18, 24, 30, 36, 44)
 private val PastelShapes = themedShapes(10, 14, 18, 24, 28)
 private val OledShapes = themedShapes(4, 6, 8, 12, 16)
 private val PureShapes = themedShapes(8, 12, 16, 20, 24)
@@ -169,6 +186,8 @@ private fun visuals(
     chartGrid: Color,
     heatmap: Triple<Color, Color, Color>,
     kawaii: Boolean = false,
+    kawaiiSurfaces: List<Color> = emptyList(),
+    kawaiiBackdrop: List<Color> = emptyList(),
 ) = AppVisuals(
     success = success,
     warning = warning,
@@ -185,6 +204,8 @@ private fun visuals(
     decorationPrimary = series.first(),
     decorationSecondary = series.getOrElse(2) { info },
     showKawaiiDecorations = kawaii,
+    kawaiiSurfaces = kawaiiSurfaces,
+    kawaiiBackdrop = kawaiiBackdrop,
 )
 
 private fun definition(
@@ -227,34 +248,54 @@ internal fun themeDefinition(theme: AppThemeId, dark: Boolean): AppThemeDefiniti
     )
     AppThemeId.KAWAII to false -> definition(
         lightColorScheme(
-            primary = Color(0xFFA83B78), onPrimary = Color.White,
-            primaryContainer = Color(0xFFFFD8EA), onPrimaryContainer = Color(0xFF3D0027),
-            secondary = Color(0xFF6650A4), secondaryContainer = Color(0xFFE9DDFF),
-            tertiary = Color(0xFF955C00), tertiaryContainer = Color(0xFFFFDDB0),
-            background = Color(0xFFFFF7FB), onBackground = Color(0xFF24191F),
-            surface = Color(0xFFFFFBFF), onSurface = Color(0xFF24191F),
-            surfaceVariant = Color(0xFFF5E1EB), onSurfaceVariant = Color(0xFF55424B),
-            outline = Color(0xFF8A707C), error = Color(0xFFBA1A1A)),
-        visuals(Color(0xFF6650A4), Color(0xFF955C00), Color(0xFF347A72),
-            listOf(Color(0xFFA83B78), Color(0xFF6650A4), Color(0xFF347A72), Color(0xFF8A5A00)),
-            Color(0xFFFFFBFF), Color(0x1F6B4055),
-            Triple(Color(0xFFF5E1EB), Color(0xFFE7A4C5), Color(0xFFA83B78)), true),
+            primary = Color(0xFFF3A8C7), onPrimary = Color(0xFF4F1730),
+            primaryContainer = Color(0xFFFFCFE3), onPrimaryContainer = Color(0xFF451329),
+            secondary = Color(0xFFFFDEA0), onSecondary = Color(0xFF4A3900),
+            secondaryContainer = Color(0xFFFFEDBD), onSecondaryContainer = Color(0xFF3C2F00),
+            tertiary = Color(0xFFB8DCFA), onTertiary = Color(0xFF143954),
+            tertiaryContainer = Color(0xFFD8ECFF), onTertiaryContainer = Color(0xFF102F46),
+            background = Color(0xFFFFEAF3), onBackground = Color(0xFF38202C),
+            surface = Color(0xFFFFF0F6), onSurface = Color(0xFF38202C),
+            surfaceVariant = Color(0xFFFFE8B8), onSurfaceVariant = Color(0xFF5B4250),
+            surfaceContainerLowest = Color(0xFFFFF7FB),
+            surfaceContainerLow = Color(0xFFFFDDEA),
+            surfaceContainer = Color(0xFFFFEBC0),
+            surfaceContainerHigh = Color(0xFFDDEEFF),
+            surfaceContainerHighest = Color(0xFFE8F0DE),
+            outline = Color(0xFF9C7084), outlineVariant = Color(0xFFD7AEC0),
+            error = Color(0xFFBA1A1A)),
+        visuals(Color(0xFF7A6412), Color(0xFFA44E72), Color(0xFF637E58),
+            listOf(Color(0xFFC45682), Color(0xFFAA8612), Color(0xFF4A82AA), Color(0xFF64885A)),
+            Color(0xFFFFF0F6), Color(0x335B4250),
+            Triple(Color(0xFFFFE8F1), Color(0xFFF0AFCB), Color(0xFFB84A78)), true,
+            kawaiiSurfaces = listOf(Color(0xFFFFDDEA), Color(0xFFFFEBC0), Color(0xFFDDEEFF), Color(0xFFE8F0DE)),
+            kawaiiBackdrop = listOf(Color(0xFFFFE8F2), Color(0xFFFFF4D2), Color(0xFFE4F2FF), Color(0xFFFFE8F2))),
         RoundedTypography, KawaiiShapes,
     )
     AppThemeId.KAWAII to true -> definition(
         darkColorScheme(
-            primary = Color(0xFFFF9BCD), onPrimary = Color(0xFF5F1040),
-            primaryContainer = Color(0xFF7D2858), onPrimaryContainer = Color(0xFFFFD8EA),
-            secondary = Color(0xFFCDBDFF), secondaryContainer = Color(0xFF4D3D7E),
-            tertiary = Color(0xFFFFD18A), tertiaryContainer = Color(0xFF704300),
-            background = Color(0xFF1C151D), onBackground = Color(0xFFF4DEE9),
-            surface = Color(0xFF291F2A), onSurface = Color(0xFFF4DEE9),
-            surfaceVariant = Color(0xFF44333F), onSurfaceVariant = Color(0xFFE5C1D2),
-            outline = Color(0xFF9E7E8E), error = Color(0xFFFFB4AB)),
-        visuals(Color(0xFFCDBDFF), Color(0xFFFFD18A), Color(0xFFFF9BCD),
-            listOf(Color(0xFFFF9BCD), Color(0xFFCDBDFF), Color(0xFFFFD18A), Color(0xFF8EE3DA)),
-            Color(0xFF291F2A), Color(0x26F4DEE9),
-            Triple(Color(0xFF44333F), Color(0xFFB45785), Color(0xFFFF9BCD)), true),
+            primary = Color(0xFFFFB4D1), onPrimary = Color(0xFF522039),
+            primaryContainer = Color(0xFF713A58), onPrimaryContainer = Color(0xFFFFD8E8),
+            secondary = Color(0xFFFFE09A), onSecondary = Color(0xFF493900),
+            secondaryContainer = Color(0xFF615532), onSecondaryContainer = Color(0xFFFFEDB8),
+            tertiary = Color(0xFFAFD8FA), onTertiary = Color(0xFF18384E),
+            tertiaryContainer = Color(0xFF344F66), onTertiaryContainer = Color(0xFFD8ECFF),
+            background = Color(0xFF2A1B28), onBackground = Color(0xFFFFE8F2),
+            surface = Color(0xFF382437), onSurface = Color(0xFFFFE8F2),
+            surfaceVariant = Color(0xFF4F4134), onSurfaceVariant = Color(0xFFF2CEDD),
+            surfaceContainerLowest = Color(0xFF241722),
+            surfaceContainerLow = Color(0xFF57384A),
+            surfaceContainer = Color(0xFF51482E),
+            surfaceContainerHigh = Color(0xFF30495C),
+            surfaceContainerHighest = Color(0xFF3E4D39),
+            outline = Color(0xFFC58FA8), outlineVariant = Color(0xFF76586A),
+            error = Color(0xFFFFB4AB)),
+        visuals(Color(0xFFFFE09A), Color(0xFFFFA6C7), Color(0xFFBBD8AA),
+            listOf(Color(0xFFFF9FC8), Color(0xFFFFD878), Color(0xFF8DC8FA), Color(0xFF9DCB8E)),
+            Color(0xFF382437), Color(0x33FFE8F2),
+            Triple(Color(0xFF4B3544), Color(0xFFB75A82), Color(0xFFFF9FC8)), true,
+            kawaiiSurfaces = listOf(Color(0xFF57384A), Color(0xFF51482E), Color(0xFF30495C), Color(0xFF3E4D39)),
+            kawaiiBackdrop = listOf(Color(0xFF2A1B28), Color(0xFF3A2935), Color(0xFF37352A), Color(0xFF293A46), Color(0xFF2A1B28))),
         RoundedTypography, KawaiiShapes,
     )
     AppThemeId.PASTEL to false -> definition(
@@ -391,9 +432,99 @@ fun SuiviMuscuTheme(
 }
 
 @Composable
-fun KawaiiHeaderDecoration() {
+fun Modifier.appBackground(): Modifier {
+    val visuals = appVisuals
+    return if (visuals.showKawaiiDecorations && visuals.kawaiiBackdrop.isNotEmpty()) {
+        background(Brush.verticalGradient(visuals.kawaiiBackdrop))
+    } else {
+        background(MaterialTheme.colorScheme.background)
+    }
+}
+
+@Composable
+fun kawaiiContainer(index: Int, fallback: Color): Color {
+    val colors = appVisuals.kawaiiSurfaces
+    return if (appVisuals.showKawaiiDecorations && colors.isNotEmpty()) {
+        colors[Math.floorMod(index, colors.size)]
+    } else {
+        fallback
+    }
+}
+
+fun kawaiiMascot(index: Int): String = listOf("🐰", "🐼", "🐱")[Math.floorMod(index, 3)]
+
+@Composable
+fun KawaiiCardMascot(emoji: String, modifier: Modifier = Modifier) {
     if (!appVisuals.showKawaiiDecorations) return
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Surface(
+        modifier = modifier.size(32.dp),
+        color = kawaiiContainer(emoji.hashCode(), MaterialTheme.colorScheme.primaryContainer),
+        shape = CircleShape,
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            if (emoji == "🐱") {
+                SiameseCatIcon(Modifier.size(23.dp).clearAndSetSemantics { })
+            } else {
+                Text(emoji, fontSize = 18.sp, modifier = Modifier.clearAndSetSemantics { })
+            }
+        }
+    }
+}
+
+@Composable
+fun KawaiiNavigationIcon(emoji: String, fallback: ImageVector) {
+    if (appVisuals.showKawaiiDecorations) {
+        if (emoji == "🐱") {
+            SiameseCatIcon(Modifier.size(25.dp).clearAndSetSemantics { })
+        } else {
+            Text(emoji, fontSize = 21.sp, modifier = Modifier.clearAndSetSemantics { })
+        }
+    } else {
+        Icon(fallback, null)
+    }
+}
+
+@Composable
+private fun SiameseCatIcon(modifier: Modifier = Modifier) {
+    val cream = Color(0xFFFFE9C9)
+    val mask = Color(0xFF63433F)
+    val eyes = Color(0xFF77C7F2)
+    Canvas(modifier) {
+        val side = size.minDimension
+        val center = Offset(size.width / 2f, size.height * .55f)
+        val leftEar = Path().apply {
+            moveTo(size.width * .20f, size.height * .38f)
+            lineTo(size.width * .27f, size.height * .02f)
+            lineTo(size.width * .46f, size.height * .28f)
+            close()
+        }
+        val rightEar = Path().apply {
+            moveTo(size.width * .54f, size.height * .28f)
+            lineTo(size.width * .73f, size.height * .02f)
+            lineTo(size.width * .80f, size.height * .38f)
+            close()
+        }
+        drawPath(leftEar, mask)
+        drawPath(rightEar, mask)
+        drawCircle(cream, radius = side * .36f, center = center)
+        drawOval(
+            color = mask,
+            topLeft = Offset(size.width * .29f, size.height * .30f),
+            size = Size(size.width * .42f, size.height * .50f),
+        )
+        drawCircle(eyes, radius = side * .055f, center = Offset(size.width * .40f, size.height * .48f))
+        drawCircle(eyes, radius = side * .055f, center = Offset(size.width * .60f, size.height * .48f))
+        drawCircle(Color(0xFF2B1D25), radius = side * .025f, center = Offset(size.width * .40f, size.height * .48f))
+        drawCircle(Color(0xFF2B1D25), radius = side * .025f, center = Offset(size.width * .60f, size.height * .48f))
+        drawCircle(Color(0xFFF2A0B7), radius = side * .035f, center = Offset(size.width * .50f, size.height * .63f))
+    }
+}
+
+@Composable
+fun KawaiiHeaderDecoration(emoji: String = "🐰") {
+    if (!appVisuals.showKawaiiDecorations) return
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        KawaiiCardMascot(emoji, Modifier.size(27.dp))
         Icon(Icons.Default.Favorite, null, tint = appVisuals.decorationPrimary, modifier = Modifier.size(15.dp))
         Icon(Icons.Default.AutoAwesome, null, tint = appVisuals.decorationSecondary, modifier = Modifier.size(17.dp))
     }

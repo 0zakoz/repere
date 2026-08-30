@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -127,33 +128,51 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab, appearance: Appearan
     var showSettings by remember { mutableStateOf(false) }
     var libraryTab by remember { mutableStateOf(LibraryTab.PROGRAMS) }
     var createTemplateRequest by remember { mutableIntStateOf(0) }
+    val navigationItemColors = if (appVisuals.showKawaiiDecorations) {
+        NavigationBarItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            selectedTextColor = MaterialTheme.colorScheme.onSurface,
+            indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    } else {
+        NavigationBarItemDefaults.colors()
+    }
     Scaffold(
+        modifier = Modifier.appBackground(),
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(containerColor = kawaiiContainer(2, MaterialTheme.colorScheme.surfaceContainer)) {
                 NavigationBarItem(
                     selected = tab == MainTab.JOURNAL,
                     onClick = { viewModel.tab.value = MainTab.JOURNAL },
-                    icon = { Icon(Icons.Default.FitnessCenter, null) },
+                    icon = { KawaiiNavigationIcon("🐰", Icons.Default.FitnessCenter) },
                     label = { Text("Journal") },
+                    colors = navigationItemColors,
                 )
                 NavigationBarItem(
                     selected = tab == MainTab.WEIGHT,
                     onClick = { viewModel.tab.value = MainTab.WEIGHT },
-                    icon = { Icon(Icons.Default.MonitorWeight, null) },
+                    icon = { KawaiiNavigationIcon("🐼", Icons.Default.MonitorWeight) },
                     label = { Text("Poids") },
+                    colors = navigationItemColors,
                 )
                 NavigationBarItem(
                     selected = tab == MainTab.TRENDS,
                     onClick = { viewModel.tab.value = MainTab.TRENDS },
-                    icon = { Icon(Icons.Default.ShowChart, null) },
+                    icon = { KawaiiNavigationIcon("🐱", Icons.Default.ShowChart) },
                     label = { Text("Tendances") },
+                    colors = navigationItemColors,
                 )
                 NavigationBarItem(
                     selected = tab == MainTab.LIBRARY,
                     onClick = { viewModel.tab.value = MainTab.LIBRARY },
-                    icon = { Icon(Icons.Default.MenuBook, null) },
+                    icon = { KawaiiNavigationIcon("🎀", Icons.Default.MenuBook) },
                     label = { Text("Bibliothèque") },
+                    colors = navigationItemColors,
                 )
             }
         },

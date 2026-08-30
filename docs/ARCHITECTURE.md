@@ -60,7 +60,8 @@ Room et la version du JSON sont donc indépendantes.
 - `LibraryScreen.kt` : CRUD, archivage et activation des éléments de bibliothèque.
 - `Charts.kt` : graphiques Canvas réutilisés pour les exercices et barres musculaires.
 - `MuscleFigure.kt` : carte musculaire vectorielle dessinée en Compose Canvas.
-- `Theme.kt` : dix variantes Material 3, formes, typographies et jetons visuels sémantiques.
+- `Theme.kt` : dix variantes Material 3, formes, typographies, jetons visuels sémantiques et
+  composants décoratifs Kawaii partagés (fond, surfaces, mascottes et icônes de navigation).
 - `AppearanceSettings.kt` : galerie des cinq thèmes et choix clair/sombre/système.
 
 Les graphiques n’utilisent aucune bibliothèque externe. Les calculs testables sont placés hors

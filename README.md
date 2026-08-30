@@ -5,7 +5,7 @@ Repère est le dépôt de l’application Android personnelle actuellement affic
 musculation, suivre les performances et le poids corporel, puis exporter les données pour
 une analyse externe.
 
-La version actuelle est la **1.6.2** (`versionCode 10`). L’application est en français,
+La version actuelle est la **1.7.0** (`versionCode 11`). L’application est en français,
 mono-utilisateur et entièrement locale : elle ne demande aucun compte et ne déclare aucune
 permission Internet.
 
@@ -23,7 +23,8 @@ permission Internet.
 - export Markdown complet de tout le contexte pour une analyse dans ChatGPT ;
 - sauvegarde et restauration JSON complètes via le sélecteur de fichiers Android ;
 - cinq thèmes visuels — Original, Kawaii, Pastel, OLED et Épuré — avec variantes claire,
-  sombre ou synchronisée sur Android.
+  sombre ou synchronisée sur Android ; Kawaii mélange rose, jaune, bleu et sauge pastel avec
+  des mascottes.
 
 Une description fonctionnelle détaillée se trouve dans [docs/PRODUCT.md](docs/PRODUCT.md).
 

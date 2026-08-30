@@ -105,9 +105,13 @@ Android. Une galerie donne un aperçu des palettes et applique immédiatement le
 conservé localement sur le téléphone.
 
 Les thèmes adaptent les couleurs, formes, typographies, graphiques, cartes musculaires et
-barres système sans changer les parcours. Kawaii ajoute des détails décoratifs discrets et des
-polices rondes embarquées ; OLED utilise un fond réellement noir en mode sombre ; Épuré reste
-minimal avec des accents jaune et bleu pastel.
+barres système sans changer les parcours. Kawaii mélange systématiquement quatre familles de
+surfaces — rose pâle en dominante, jaune pâle, bleu pâle et quelques touches sauge — sur un fond
+pastel dégradé, en clair comme en sombre. Ses formes sont très arrondies et ses en-têtes,
+navigation et cartes utilisent des cœurs, étoiles, lapins, pandas et un pictogramme de chat
+siamois. Les décorations restent sans fonction et ne remplacent pas les libellés accessibles.
+OLED utilise un fond réellement noir en mode sombre ; Épuré reste minimal avec des accents
+jaune et bleu pastel.
 
 La couleur primaire signale les actions principales et la navigation ; la couleur secondaire
 porte les réussites, validations et états actifs afin que les deux accents restent visibles. Une
@@ -133,5 +137,5 @@ demande confirmation et remplace l’état local uniquement après décodage et 
 - pas de tests instrumentés ou Compose UI dans le dépôt à ce jour ; les parcours sur téléphone
   sont validés manuellement lorsque nécessaire.
 
-Ces limites décrivent la version 1.6.2. Elles peuvent évoluer si une nouvelle demande le
+Ces limites décrivent la version 1.7.0. Elles peuvent évoluer si une nouvelle demande le
 justifie.

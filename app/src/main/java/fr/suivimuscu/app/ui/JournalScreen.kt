@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -57,7 +58,7 @@ fun JournalScreen(
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Suivi Muscu", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                        KawaiiHeaderDecoration()
+                        KawaiiHeaderDecoration("🐰")
                     }
                     Text("Ton carnet, sans friction.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -66,7 +67,11 @@ fun JournalScreen(
         }
         if (pausedDraft != null) {
             item {
-                ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = appVisuals.pausedContainer)) {
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = kawaiiContainer(2, appVisuals.pausedContainer),
+                    ),
+                ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.PauseCircle, null, tint = appVisuals.info)
@@ -90,7 +95,11 @@ fun JournalScreen(
         }
         if (program == null) {
             item {
-                ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = appVisuals.warningContainer)) {
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = kawaiiContainer(1, appVisuals.warningContainer),
+                    ),
+                ) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                         Text("Aucun programme actif", fontWeight = FontWeight.Bold)
                         Text(
@@ -110,11 +119,20 @@ fun JournalScreen(
         if (suggested != null) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    colors = CardDefaults.cardColors(
+                        containerColor = kawaiiContainer(0, MaterialTheme.colorScheme.surface),
+                    ),
                     border = BorderStroke(1.dp, appVisuals.success.copy(alpha = .35f)),
                 ) {
                     Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("PROCHAINE SÉANCE", style = MaterialTheme.typography.labelMedium, color = appVisuals.success)
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text("PROCHAINE SÉANCE", style = MaterialTheme.typography.labelMedium, color = appVisuals.success)
+                            KawaiiCardMascot("🐰")
+                        }
                         Text(
                             "${program?.name.orEmpty()} • Séance ${suggested.name}",
                             style = MaterialTheme.typography.headlineSmall,
@@ -157,10 +175,15 @@ fun JournalScreen(
                 }
             }
         }
-        items(history, key = { it.id }) { log ->
+        itemsIndexed(history, key = { _, log -> log.id }) { index, log ->
             val count = log.exercises.sumOf { ex -> ex.sets.count { it.completed } }
-            Card {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = kawaiiContainer(index + 1, MaterialTheme.colorScheme.surfaceContainerHighest),
+                ),
+            ) {
                 Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    KawaiiCardMascot(kawaiiMascot(index), Modifier.padding(end = 8.dp))
                     Column(Modifier.weight(1f)) {
                         Text("Séance ${log.templateNameSnapshot}", fontWeight = FontWeight.Bold)
                         Text(

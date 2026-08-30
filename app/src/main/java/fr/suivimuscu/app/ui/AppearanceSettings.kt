@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import fr.suivimuscu.app.data.AppThemeId
 import fr.suivimuscu.app.data.AppearancePreferences
 import fr.suivimuscu.app.data.ThemeMode
@@ -29,7 +30,7 @@ private data class ThemeChoice(val id: AppThemeId, val name: String, val descrip
 
 private val themeChoices = listOf(
     ThemeChoice(AppThemeId.ORIGINAL, "Original", "Graphite & lime"),
-    ThemeChoice(AppThemeId.KAWAII, "Kawaii", "Rose & lavande"),
+    ThemeChoice(AppThemeId.KAWAII, "Kawaii", "Rose, jaune, bleu & mascottes"),
     ThemeChoice(AppThemeId.PASTEL, "Pastel", "Rose, jaune & bleu"),
     ThemeChoice(AppThemeId.OLED, "OLED", "Noir & néons"),
     ThemeChoice(AppThemeId.PURE, "Épuré", "Sobre & premium"),
@@ -107,6 +108,7 @@ private fun ThemePreviewCard(choice: ThemeChoice, selected: Boolean, dark: Boole
                     PreviewDot(preview.colors.primary)
                     PreviewDot(preview.colors.secondary)
                     PreviewDot(preview.colors.tertiary)
+                    if (choice.id == AppThemeId.KAWAII) PreviewDot(preview.visuals.info)
                 }
                 if (selected) {
                     Icon(Icons.Default.CheckCircle, "Thème sélectionné", tint = preview.colors.primary, modifier = Modifier.size(18.dp))
@@ -119,11 +121,16 @@ private fun ThemePreviewCard(choice: ThemeChoice, selected: Boolean, dark: Boole
                     .border(1.dp, preview.colors.outline.copy(alpha = .35f), preview.shapes.small),
             ) {
                 Row(Modifier.align(Alignment.Center).padding(horizontal = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.height(5.dp).weight(1f).clip(CircleShape).background(preview.colors.primary))
                     if (choice.id == AppThemeId.KAWAII) {
-                        Spacer(Modifier.width(5.dp))
+                        preview.visuals.kawaiiSurfaces.take(3).forEach { color ->
+                            Box(Modifier.height(7.dp).weight(1f).clip(CircleShape).background(color))
+                            Spacer(Modifier.width(3.dp))
+                        }
+                        Text("🐰🐼🐱", fontSize = 10.sp)
                         Icon(Icons.Default.Favorite, null, tint = preview.colors.primary, modifier = Modifier.size(12.dp))
                         Icon(Icons.Default.AutoAwesome, null, tint = preview.colors.tertiary, modifier = Modifier.size(12.dp))
+                    } else {
+                        Box(Modifier.height(5.dp).weight(1f).clip(CircleShape).background(preview.colors.primary))
                     }
                 }
             }

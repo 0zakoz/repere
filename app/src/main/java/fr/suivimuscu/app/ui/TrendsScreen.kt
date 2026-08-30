@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.MonitorHeart
@@ -30,7 +31,7 @@ fun TrendsScreen(state: AppState, viewModel: MainViewModel, modifier: Modifier =
         Column(Modifier.padding(horizontal = 18.dp, vertical = 14.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Tendances", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                KawaiiHeaderDecoration()
+                KawaiiHeaderDecoration("🐱")
             }
             Text("Des données brutes, sans score opaque.", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -39,19 +40,19 @@ fun TrendsScreen(state: AppState, viewModel: MainViewModel, modifier: Modifier =
                 selected = trendTab == TrendTab.EXERCISE,
                 onClick = { trendTab = TrendTab.EXERCISE },
                 text = { Text("Exercices") },
-                icon = { Icon(Icons.Default.ShowChart, null) },
+                icon = { KawaiiNavigationIcon("✨", Icons.Default.ShowChart) },
             )
             Tab(
                 selected = trendTab == TrendTab.SESSION,
                 onClick = { trendTab = TrendTab.SESSION },
                 text = { Text("Séances") },
-                icon = { Icon(Icons.Default.FitnessCenter, null) },
+                icon = { KawaiiNavigationIcon("🐰", Icons.Default.FitnessCenter) },
             )
             Tab(
                 selected = trendTab == TrendTab.MUSCLE,
                 onClick = { trendTab = TrendTab.MUSCLE },
                 text = { Text("Muscles") },
-                icon = { Icon(Icons.Default.MonitorHeart, null) },
+                icon = { KawaiiNavigationIcon("🐼", Icons.Default.MonitorHeart) },
             )
         }
         LazyRow(
@@ -110,7 +111,7 @@ private fun ExerciseTrend(state: AppState, viewModel: MainViewModel, weeks: Int?
             item { ExerciseCharts(points) }
             if (points.isNotEmpty()) {
                 item { Text("Dernières séries", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
-                items(points.takeLast(12).reversed()) { point ->
+                itemsIndexed(points.takeLast(12).reversed()) { index, point ->
                     ListItem(
                         headlineContent = { Text("${point.weight} kg × ${point.reps.toInt()} reps") },
                         supportingContent = {
@@ -118,6 +119,12 @@ private fun ExerciseTrend(state: AppState, viewModel: MainViewModel, weeks: Int?
                                 point.rir?.let { " • RIR $it" }.orEmpty() +
                                 point.restSeconds?.let { " • repos ${it}s" }.orEmpty())
                         },
+                        leadingContent = if (appVisuals.showKawaiiDecorations) {
+                            { KawaiiCardMascot(kawaiiMascot(index)) }
+                        } else null,
+                        colors = ListItemDefaults.colors(
+                            containerColor = kawaiiContainer(index, MaterialTheme.colorScheme.surface),
+                        ),
                     )
                 }
             }
@@ -150,7 +157,7 @@ private fun SessionTrend(state: AppState, viewModel: MainViewModel, weeks: Int?)
         if (summaries.isEmpty()) item { EmptyChart("Pas encore de séance terminée") }
         periodStats?.let { stats ->
             item {
-                Card(colors = CardDefaults.cardColors(containerColor = appVisuals.activeContainer)) {
+                Card(colors = CardDefaults.cardColors(containerColor = kawaiiContainer(0, appVisuals.activeContainer))) {
                     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
@@ -185,11 +192,15 @@ private fun SessionTrend(state: AppState, viewModel: MainViewModel, weeks: Int?)
             item {
                 Text("Séries moyennes par exercice", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
-            items(stats.exercises, key = { it.exerciseId }) { exercise ->
+            itemsIndexed(stats.exercises, key = { _, exercise -> exercise.exerciseId }) { index, exercise ->
                 val ratio = if (exercise.averagePlannedSets > 0) {
                     exercise.averageCompletedSets / exercise.averagePlannedSets
                 } else 0.0
-                Card {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = kawaiiContainer(index + 1, MaterialTheme.colorScheme.surfaceContainerHighest),
+                    ),
+                ) {
                     Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(exercise.exerciseName, fontWeight = FontWeight.SemiBold)
@@ -210,8 +221,12 @@ private fun SessionTrend(state: AppState, viewModel: MainViewModel, weeks: Int?)
                 Text("Détail des séances", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
         }
-        items(summaries.reversed()) { summary ->
-            Card {
+        itemsIndexed(summaries.reversed()) { index, summary ->
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = kawaiiContainer(index + 2, MaterialTheme.colorScheme.surfaceContainerHighest),
+                ),
+            ) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(formatSessionDate(summary.timestamp), fontWeight = FontWeight.Bold)
@@ -260,12 +275,12 @@ private fun MuscleTrend(state: AppState, viewModel: MainViewModel, weeks: Int?) 
             item {
                 Text("Moyennes sur la période", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
-            items(
+            itemsIndexed(
                 state.muscles.filterNot { it.archived }
                     .filter { (stats[it.id]?.weightedSets ?: 0.0) > 0 }
                     .sortedByDescending { stats[it.id]?.weightedSets ?: 0.0 },
-                key = { it.id },
-            ) { muscle ->
+                key = { _, muscle -> muscle.id },
+            ) { index, muscle ->
                 val metric = stats.getValue(muscle.id)
                 ListItem(
                     headlineContent = { Text(muscle.name, fontWeight = FontWeight.SemiBold) },
@@ -276,14 +291,24 @@ private fun MuscleTrend(state: AppState, viewModel: MainViewModel, weeks: Int?) 
                                 "${metric.averageRir?.let { "RIR moy. ${formatMetric(it)}" } ?: "RIR moy. —"}"
                         )
                     },
+                    leadingContent = if (appVisuals.showKawaiiDecorations) {
+                        { KawaiiCardMascot(kawaiiMascot(index)) }
+                    } else null,
+                    colors = ListItemDefaults.colors(
+                        containerColor = kawaiiContainer(index, MaterialTheme.colorScheme.surface),
+                    ),
                 )
             }
         }
         if (weeksData.isNotEmpty()) {
             item { Text("Détail hebdomadaire", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
-            items(weeksData.reversed()) { week ->
+            itemsIndexed(weeksData.reversed()) { index, week ->
                 val total = week.volumes.values.sum()
-                Card {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = kawaiiContainer(index + 1, MaterialTheme.colorScheme.surfaceContainerHighest),
+                    ),
+                ) {
                     Row(Modifier.fillMaxWidth().padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Semaine du ${week.weekLabel}")
                         Text("%.1f séries pondérées".format(total), color = appVisuals.success)

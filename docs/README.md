@@ -26,7 +26,7 @@ alors la documentation dans la même modification.
 - branche principale : `main` ;
 - libellé Android actuel : **Suivi Muscu** ;
 - package et `applicationId` : `fr.suivimuscu.app` ;
-- version : **1.6.2**, `versionCode 10` ;
+- version : **1.7.0**, `versionCode 11` ;
 - date de cet état des lieux : 30 août 2026.
 
 Le nom du dépôt et le libellé visible de l’application sont volontairement documentés comme

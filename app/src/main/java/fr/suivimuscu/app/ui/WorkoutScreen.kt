@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,13 +48,18 @@ fun WorkoutScreen(
     }
 
     Scaffold(
+        modifier = Modifier.appBackground(),
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text("Séance ${workout.templateNameSnapshot}", fontWeight = FontWeight.Bold)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            Text("Séance ${workout.templateNameSnapshot}", fontWeight = FontWeight.Bold)
+                            KawaiiHeaderDecoration("🐱")
+                        }
                         Text(workout.localDate, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        KawaiiHeaderDecoration()
                     }
                 },
                 navigationIcon = {
@@ -67,10 +73,17 @@ fun WorkoutScreen(
                         Icon(if (workout.note.isBlank()) Icons.Default.Notes else Icons.Default.StickyNote2, "Note")
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = kawaiiContainer(0, MaterialTheme.colorScheme.surface),
+                ),
             )
         },
         bottomBar = {
-            Surface(Modifier.navigationBarsPadding(), shadowElevation = 8.dp) {
+            Surface(
+                Modifier.navigationBarsPadding(),
+                color = kawaiiContainer(2, MaterialTheme.colorScheme.surface),
+                shadowElevation = 8.dp,
+            ) {
                 Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick = { showAddExercise = true }, Modifier.weight(1f)) {
                         Icon(Icons.Default.Add, null)
@@ -96,7 +109,10 @@ fun WorkoutScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item {
-                    Surface(color = appVisuals.pausedContainer, shape = MaterialTheme.shapes.medium) {
+                    Surface(
+                        color = kawaiiContainer(1, appVisuals.pausedContainer),
+                        shape = MaterialTheme.shapes.medium,
+                    ) {
                         Text(
                             "Poids + répétitions requis • RIR facultatif • touche ✓ pour valider. Toute modification invalide la série.",
                             modifier = Modifier.fillMaxWidth().padding(10.dp),
@@ -273,9 +289,14 @@ private fun RestTimerBar(
 @Composable
 private fun ExerciseLogCard(exercise: LoggedExercise, viewModel: MainViewModel) {
     var confirmRemove by remember { mutableStateOf(false) }
-    ElevatedCard {
+    ElevatedCard(
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = kawaiiContainer(exercise.id.hashCode(), MaterialTheme.colorScheme.surfaceContainerLow),
+        ),
+    ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.Top) {
+                KawaiiCardMascot(kawaiiMascot(exercise.id.hashCode()), Modifier.padding(end = 8.dp))
                 Column(Modifier.weight(1f)) {
                     Text(exercise.nameSnapshot, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text("${exercise.repMinSnapshot}–${exercise.repMaxSnapshot} reps", color = appVisuals.success)
@@ -325,7 +346,7 @@ private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainVie
         else -> appVisuals.success
     }
     Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f),
+        color = kawaiiContainer(set.order + 1, MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f)),
         shape = MaterialTheme.shapes.medium,
         border = if (set.completed) {
             androidx.compose.foundation.BorderStroke(1.5.dp, appVisuals.success)
