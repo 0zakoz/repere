@@ -57,6 +57,20 @@ class ThemeTest {
         assertEquals(Color(0xFFB89CFF), definition.colors.tertiary)
     }
 
+    @Test
+    fun expressiveThemesUseSecondaryColorForSuccessStates() {
+        AppThemeId.entries.filterNot { it == AppThemeId.ORIGINAL }.forEach { theme ->
+            listOf(false, true).forEach { dark ->
+                val definition = themeDefinition(theme, dark)
+                assertEquals("$theme/$dark success role", definition.colors.secondary, definition.visuals.success)
+                assertTrue(
+                    "$theme/$dark primary and success must stay distinct",
+                    colorDistance(definition.colors.primary, definition.visuals.success) >= 0.18,
+                )
+            }
+        }
+    }
+
     private fun contrast(first: Color, second: Color): Double {
         val high = max(first.luminance(), second.luminance()).toDouble()
         val low = min(first.luminance(), second.luminance()).toDouble()

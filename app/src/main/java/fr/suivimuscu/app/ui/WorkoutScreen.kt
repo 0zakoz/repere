@@ -325,8 +325,11 @@ private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainVie
         else -> appVisuals.success
     }
     Surface(
-        color = if (set.completed) appVisuals.activeContainer.copy(alpha = .55f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f),
         shape = MaterialTheme.shapes.medium,
+        border = if (set.completed) {
+            androidx.compose.foundation.BorderStroke(1.5.dp, appVisuals.success)
+        } else null,
     ) {
         Column(Modifier.padding(9.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {

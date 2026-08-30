@@ -109,6 +109,10 @@ barres système sans changer les parcours. Kawaii ajoute des détails décoratif
 polices rondes embarquées ; OLED utilise un fond réellement noir en mode sombre ; Épuré reste
 minimal avec des accents jaune et bleu pastel.
 
+La couleur primaire signale les actions principales et la navigation ; la couleur secondaire
+porte les réussites, validations et états actifs afin que les deux accents restent visibles. Une
+série validée conserve un fond neutre et se distingue par un contour coloré, sans grand aplat.
+
 ### Données et fichiers
 
 L’icône de réglages du Journal ouvre les exports CSV des performances et des pesées, un export
@@ -127,5 +131,5 @@ demande confirmation et remplace l’état local uniquement après décodage et 
 - pas de tests instrumentés ou Compose UI dans le dépôt à ce jour ; les parcours sur téléphone
   sont validés manuellement lorsque nécessaire.
 
-Ces limites décrivent la version 1.6.0. Elles peuvent évoluer si une nouvelle demande le
+Ces limites décrivent la version 1.6.1. Elles peuvent évoluer si une nouvelle demande le
 justifie.
