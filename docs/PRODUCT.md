@@ -112,6 +112,8 @@ minimal avec des accents jaune et bleu pastel.
 La couleur primaire signale les actions principales et la navigation ; la couleur secondaire
 porte les réussites, validations et états actifs afin que les deux accents restent visibles. Une
 série validée conserve un fond neutre et se distingue par un contour coloré, sans grand aplat.
+La prochaine séance est présentée dans une carte plate au fond neutre, avec un contour discret :
+elle reste mise en avant sans halo opaque, en mode clair comme en mode sombre.
 
 ### Données et fichiers
 
@@ -131,5 +133,5 @@ demande confirmation et remplace l’état local uniquement après décodage et 
 - pas de tests instrumentés ou Compose UI dans le dépôt à ce jour ; les parcours sur téléphone
   sont validés manuellement lorsque nécessaire.
 
-Ces limites décrivent la version 1.6.1. Elles peuvent évoluer si une nouvelle demande le
+Ces limites décrivent la version 1.6.2. Elles peuvent évoluer si une nouvelle demande le
 justifie.

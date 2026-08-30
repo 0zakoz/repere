@@ -1,5 +1,6 @@
 package fr.suivimuscu.app.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -108,7 +109,10 @@ fun JournalScreen(
         }
         if (suggested != null) {
             item {
-                ElevatedCard(colors = CardDefaults.elevatedCardColors(containerColor = appVisuals.activeContainer)) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, appVisuals.success.copy(alpha = .35f)),
+                ) {
                     Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("PROCHAINE SÉANCE", style = MaterialTheme.typography.labelMedium, color = appVisuals.success)
                         Text(
