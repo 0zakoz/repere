@@ -1,65 +1,73 @@
-# Suivi Muscu
+# Repère
 
-Application Android personnelle et entièrement hors ligne pour enregistrer les
-séances, suivre les performances et exporter les données.
+Repère est le dépôt de l’application Android personnelle actuellement affichée sous le nom
+**Suivi Muscu** sur le téléphone. Elle sert à enregistrer rapidement les séances de
+musculation, suivre les performances et le poids corporel, puis exporter les données pour
+une analyse externe.
 
-## Installer sur Android
+La version actuelle est la **1.4.1** (`versionCode 6`). L’application est en français,
+mono-utilisateur et entièrement locale : elle ne demande aucun compte et ne déclare aucune
+permission Internet.
 
-L’APK et les clés de signature ne sont volontairement pas versionnés dans Git.
-Pour produire puis installer l’application depuis cette copie de travail :
+## Fonctionnalités actuelles
 
-```powershell
-.\build.ps1
-.\install.ps1
-```
+- bibliothèque modifiable de programmes, séances, exercices et groupes musculaires ;
+- programme actif avec cycle de séances et jours d’entraînement indicatifs ;
+- séance en cours autosauvegardée, préremplie depuis la dernière performance connue ;
+- saisie des charges, répétitions, RIR et temps de repos, avec ajout ou retrait de séries ;
+- historique éditable avec date, heure, durée, note et suppression temporairement annulable ;
+- tendances par exercice, séance et muscle sur 4, 12, 52 semaines ou tout l’historique ;
+- volume musculaire pondéré : principal ×1, secondaire ×0,5, tertiaire ×0,25 ;
+- suivi du poids avec saisie libre, moyenne glissante sur 7 jours et graphique ;
+- exports CSV séparés pour les performances et les pesées ;
+- sauvegarde et restauration JSON complètes via le sélecteur de fichiers Android.
 
-Pour une installation manuelle :
+Une description fonctionnelle détaillée se trouve dans [docs/PRODUCT.md](docs/PRODUCT.md).
 
-1. Copier `app/build/outputs/apk/release/app-release.apk` sur le téléphone.
-2. Ouvrir le fichier depuis l'application **Fichiers**.
-3. Si Android le demande, autoriser temporairement **Installer des applications
-   inconnues** pour cette application.
-4. Appuyer sur **Installer**.
+## Données et sauvegarde
 
-Les futures mises à jour d’une même installation doivent être signées avec la
-même clé. Les fichiers `release-private/suivi-muscu.jks` et
-`keystore.properties` doivent donc rester conservés séparément et ne jamais
-être publiés.
+Les données vivent dans le stockage privé de l’application. Désinstaller l’application ou
+effacer ses données Android les supprime du téléphone.
 
-## Données
+Avant une réinstallation ou un changement de téléphone, ouvrir les réglages depuis le
+Journal, créer une **Sauvegarde complète**, puis copier le fichier JSON hors du téléphone.
+Les CSV sont destinés à l’analyse ; seul le JSON permet une restauration complète.
 
-- Toutes les données restent dans le stockage privé Android.
-- L'icône Réglages permet d'exporter un CSV, créer une sauvegarde JSON complète
-  ou restaurer une sauvegarde.
-- Avant une réinstallation ou un changement de téléphone, créer une sauvegarde
-  JSON et la copier hors du téléphone.
+La structure des données et les règles de compatibilité sont décrites dans
+[docs/DATA.md](docs/DATA.md).
 
-## Compiler
+## Compiler et installer
 
-L'outillage isolé est installé dans `.tooling/` et n'altère pas l'installation
-Java du système.
-
-```powershell
-.\build.ps1
-```
-
-La commande exécute les tests, le lint Android et produit :
-
-`app/build/outputs/apk/release/app-release.apk`
-
-Pour installer par USB après activation du débogage USB (l'APK release est
-alors installé directement) :
+Pré-requis : Windows PowerShell et l’outillage local conservé dans `.tooling/`. Le projet
+utilise JDK 17, Gradle Wrapper et le SDK Android local sans modifier l’installation Java du
+système.
 
 ```powershell
-.\install.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
-## Architecture
+Le script exécute les tests unitaires, le lint Android et la compilation release. L’APK est
+produit dans `app/build/outputs/apk/release/app-release.apk`.
 
-- Kotlin et Jetpack Compose / Material 3
-- Room comme stockage local
-- sérialisation JSON versionnée pour la sauvegarde
-- graphiques Compose Canvas
-- aucune permission Internet
+Avec un téléphone autorisé en débogage USB :
 
-Le cahier des charges complet se trouve dans `PLAN.md`.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+Le script utilise `adb install -r` afin de mettre à jour l’application sans effacer ses
+données. Une mise à jour doit être signée avec la même clé que l’installation existante.
+Les fichiers `release-private/`, `keystore.properties` et `local.properties` sont donc
+conservés localement et exclus de Git.
+
+Le guide complet de développement et de livraison se trouve dans
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
+## Documentation du projet
+
+Le sommaire destiné aux développeurs et aux agents est [docs/README.md](docs/README.md).
+L’architecture du code est décrite dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+`AGENTS.md` est le point d’entrée des agents travaillant dans ce dépôt. La documentation
+décrit l’état présent du projet ; elle n’interdit pas de le faire évoluer lorsque la demande
+de l’utilisateur le justifie.
