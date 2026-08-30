@@ -15,6 +15,8 @@ restrictions sur les évolutions futures.
 - [DEVELOPMENT.md](DEVELOPMENT.md) : lire avant de compiler, tester, signer, installer ou livrer
   l’application.
 - [WEB.md](WEB.md) : lire avant de modifier, tester, publier ou installer la PWA sur iPhone.
+- [SECURITY.md](SECURITY.md) : lire avant de manipuler des données, dépendances, secrets,
+  workflows ou éléments destinés au dépôt public.
 
 Pour une correction ou une fonctionnalité substantielle, lire au minimum ce sommaire,
 `PRODUCT.md`, `ARCHITECTURE.md` et le document spécialisé correspondant à la zone touchée.
@@ -24,6 +26,8 @@ alors la documentation dans la même modification.
 ## État de référence
 
 - dépôt : `https://github.com/0zakoz/repere` ;
+- visibilité : **publique** ; le code, l’historique et les journaux Actions ne sont pas
+  confidentiels ;
 - branche principale : `main` ;
 - libellé Android actuel : **Suivi Muscu** ;
 - package et `applicationId` : `fr.suivimuscu.app` ;

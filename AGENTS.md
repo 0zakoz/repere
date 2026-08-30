@@ -2,6 +2,21 @@
 
 Ce fichier s’applique à l’ensemble du dépôt.
 
+## Dépôt public
+
+Ce dépôt et tout son historique sont publics. Considérer qu’un fichier commité, le contenu
+d’un diff et les journaux GitHub Actions peuvent être lus et copiés par n’importe qui.
+
+- Ne jamais ajouter de données réelles d’utilisateur : sauvegarde JSON, export CSV/Markdown,
+  notes de séance, poids, nutrition, capture personnelle ou dump IndexedDB/Room.
+- N’utiliser dans les tests et la documentation que des données manifestement synthétiques.
+- Ne jamais placer un secret côté Web : tout ce qui est livré sous `web/` est téléchargé par
+  le navigateur et doit être considéré comme public.
+- Garder l’identité Git configurée avec une adresse GitHub `noreply`, puis contrôler les
+  fichiers staged et leurs diffs avant chaque push.
+- Lire [docs/SECURITY.md](docs/SECURITY.md) avant toute évolution touchant aux données, à la
+  publication, aux dépendances ou à GitHub Actions.
+
 ## Avant de modifier le projet
 
 1. Lire [docs/README.md](docs/README.md), puis les documents qu’il indique pour la tâche.
@@ -26,6 +41,9 @@ seulement les changements gratuits qui élargissent inutilement le périmètre.
   exécuter une commande ADB destructive sans autorisation explicite.
 - Ne jamais versionner `keystore.properties`, `local.properties`, `release-private/`,
   `.tooling/`, les APK, les clés, les secrets ou les sorties de build.
+- Ne jamais afficher un secret dans une commande, un rapport de test ou un journal CI. Si un
+  secret ou une donnée réelle est commité, arrêter la livraison et traiter aussi l’historique,
+  pas uniquement le dernier fichier.
 - Conserver les identifiants métier stables et les snapshots historiques, ou documenter et
   migrer consciemment tout changement de cette règle.
 - Ne pas supposer que le téléphone est branché. Les tests sur appareil viennent en complément

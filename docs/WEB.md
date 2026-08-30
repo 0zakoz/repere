@@ -7,6 +7,10 @@ passer par l’App Store. GitHub Pages ne sert que les fichiers HTML, CSS, JavaS
 icônes. Aucune donnée sportive n’est envoyée au dépôt ou à GitHub : la base reste dans
 IndexedDB sur l’appareil.
 
+Le dépôt, le site et tout le code JavaScript livré sont publics. Aucun mot de passe, token,
+secret applicatif ou jeu de données personnel ne doit donc être placé dans `web/`, injecté au
+build ou publié comme ressource statique.
+
 La PWA reprend les cinq onglets Android, les règles de programme et de préremplissage, le suivi
 poids/nutrition, les tendances, les cinq thèmes et les mêmes formats d’export. La sauvegarde
 JSON est conçue pour passer d’Android au Web et inversement. Il n’existe pas de synchronisation

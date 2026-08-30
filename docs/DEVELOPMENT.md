@@ -120,6 +120,11 @@ l’application Fichiers et autoriser temporairement cette source si Android le 
 7. Installer sur le Realme GT6 seulement lorsqu’un test appareil apporte une vraie couverture
    supplémentaire et que l’utilisateur l’a rendu disponible.
 
+Le dépôt étant public, vérifier également l’identité Git `noreply`, puis examiner
+`git diff --cached` avant tout push. Les jeux de données de test doivent être synthétiques. Ne
+jamais utiliser une sauvegarde réelle, même temporairement : supprimer le fichier du dernier
+commit ne l’efface pas de l’historique Git.
+
 Pour une modification Web, ajouter aux étapes 4 à 6 les tests Node, une vérification à largeur
 iPhone et, si le cache change, une nouvelle clé dans `sw.js`. Ne jamais tester la restauration
 avec les seules données réelles d’un utilisateur : employer une sauvegarde de test.
@@ -156,3 +161,7 @@ npm run check
 Contrôler aussi que `keystore.properties`, `local.properties`, `release-private/`, `.tooling/`,
 les APK et les répertoires `build/` restent ignorés. Ne pas inclure de captures ou dumps UI de
 test sauf s’ils deviennent volontairement des ressources de documentation maintenues.
+
+Contrôler enfin que les fichiers staged ne contiennent ni export utilisateur, ni sauvegarde,
+ni adresse e-mail personnelle d’auteur. Les workflows ne doivent jamais écrire de valeur
+secrète dans leurs journaux.

@@ -8,6 +8,9 @@ deux clients hors ligne partageant le même modèle de sauvegarde :
 
 Les deux versions sont en français, mono-utilisateur et sans compte. Les données restent sur
 l’appareil ; il n’existe ni serveur applicatif, ni télémétrie, ni synchronisation automatique.
+Le dépôt source est public, mais il ne contient aucune donnée personnelle : les historiques
+réels restent exclusivement dans les stockages locaux et les sauvegardes choisies par
+l’utilisateur.
 
 ## Installer sur iPhone
 
@@ -80,3 +83,5 @@ publie le dossier `web/` sur GitHub Pages à chaque modification de la branche `
 Le guide complet est [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) et l’architecture est décrite
 dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). `AGENTS.md` est le point d’entrée des agents
 travaillant dans ce dépôt ; la documentation décrit l’état présent sans figer les évolutions.
+Les règles de sécurité du dépôt public sont détaillées dans
+[docs/SECURITY.md](docs/SECURITY.md).
