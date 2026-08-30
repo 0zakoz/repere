@@ -21,6 +21,11 @@ Preferences DataStore `appearance`. Ils restent volontairement hors d’`AppStat
 changent pas les schémas Room ou métier et ne sont ni sauvegardés dans le JSON, ni restaurés,
 ni ajoutés aux exports. Une valeur absente ou inconnue revient à **Original sombre**.
 
+La PWA conserve le même `AppState` dans IndexedDB, base `repere-pwa`, magasin `state`, sous la
+clé `app-state`. Elle applique les mêmes migrations métier en JavaScript avant utilisation.
+Son thème est stocké séparément dans `localStorage`. Le service worker ne contient que les
+ressources statiques et ne sert pas de stockage métier.
+
 ## Modèle persistant
 
 `AppState` contient :
@@ -88,6 +93,15 @@ La sauvegarde est l’encodage complet de `AppState`. La restauration :
 Le JSON n’est pas chiffré. Il peut contenir notes, performances, poids, nutrition et historique complet.
 Pour valider une évolution, ajouter au minimum un test de lecture d’un ancien état et un test
 d’aller-retour du schéma courant.
+
+La version Web importe et exporte ce même objet JSON. C’est le mécanisme de transfert prévu
+entre Android et iPhone ; il remplace intégralement l’état du client cible et ne fusionne pas
+deux historiques. Toute évolution du format doit être implémentée et testée dans
+`StateMigrations.kt` et `web/js/state.js` avant livraison.
+
+Sur iPhone, IndexedDB reste lié au site `https://0zakoz.github.io/repere/`. Effacer les données
+Safari ou le stockage de la PWA peut le supprimer. La demande de persistance Web réduit ce
+risque mais ne remplace pas une sauvegarde externe régulière dans Fichiers ou iCloud.
 
 ## Export des performances
 

@@ -13,6 +13,9 @@ Le projet cible Windows PowerShell et conserve un environnement isolé sous `.to
 possible d’utiliser un JDK 17 et un SDK Android standards, à condition que Gradle puisse trouver
 le SDK.
 
+La PWA sous `web/` demande seulement une version récente de Node.js pour les tests et le serveur
+local. Elle n’a aucune dépendance npm et aucune étape de compilation.
+
 ## Commandes usuelles
 
 Depuis la racine du dépôt, si `JAVA_HOME` et le SDK Android sont déjà configurés :
@@ -33,6 +36,19 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 
 L’APK résultant est `app/build/outputs/apk/release/app-release.apk`. Les rapports de tests et de
 lint sont placés sous `app/build/reports/`.
+
+Pour la version Web :
+
+```powershell
+cd web
+npm test
+npm run check
+npm run serve
+```
+
+`npm test` couvre les règles métier pures, les migrations, exports et ressources PWA.
+`npm run check` analyse la syntaxe des modules principaux. `npm run serve` expose le dossier sur
+`http://127.0.0.1:4173/` pour une vérification mobile locale.
 
 ## Couverture automatisée actuelle
 
@@ -104,12 +120,37 @@ l’application Fichiers et autoriser temporairement cette source si Android le 
 7. Installer sur le Realme GT6 seulement lorsqu’un test appareil apporte une vraie couverture
    supplémentaire et que l’utilisateur l’a rendu disponible.
 
+Pour une modification Web, ajouter aux étapes 4 à 6 les tests Node, une vérification à largeur
+iPhone et, si le cache change, une nouvelle clé dans `sw.js`. Ne jamais tester la restauration
+avec les seules données réelles d’un utilisateur : employer une sauvegarde de test.
+
+## Publication Web
+
+Le workflow `.github/workflows/pages.yml` est déclenché par les changements de `web/` sur
+`main` ou manuellement. Il utilise Node.js 24, exécute les tests et contrôles de syntaxe, puis
+publie directement `web/` avec GitHub Pages. Le dépôt GitHub doit avoir sa source Pages réglée
+sur **GitHub Actions**.
+
+Après le push, vérifier le succès du workflow et ouvrir
+`https://0zakoz.github.io/repere/`. Contrôler au minimum le manifeste, le chargement des polices,
+le démarrage d’une séance, une écriture IndexedDB et une réouverture hors ligne. La PWA peut
+conserver temporairement une ancienne version tant que le service worker n’a pas été activé ;
+fermer puis rouvrir l’application permet généralement d’appliquer la mise à jour.
+
 ## Contrôle avant commit ou livraison
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 git diff --check
 git status --short
+```
+
+Pour une livraison touchant la PWA, ajouter :
+
+```powershell
+cd web
+npm test
+npm run check
 ```
 
 Contrôler aussi que `keystore.properties`, `local.properties`, `release-private/`, `.tooling/`,

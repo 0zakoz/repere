@@ -1,0 +1,11 @@
+{
+  "name": "repere-web",
+  "private": true,
+  "version": "1.8.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-isolation=none tests/*.test.mjs",
+    "serve": "node scripts/serve.mjs",
+    "check": "node --check js/app.js && node --check js/rules.js && node --check js/exporters.js"
+  }
+}

@@ -1,78 +1,82 @@
 # Repère
 
-Repère est le dépôt de l’application Android personnelle actuellement affichée sous le nom
-**Suivi Muscu** sur le téléphone. Elle sert à enregistrer rapidement les séances de
-musculation, suivre les performances, le poids corporel et la nutrition, puis exporter les données pour
-une analyse externe.
+Repère est un carnet personnel de musculation, de poids et de nutrition. Le dépôt contient
+deux clients hors ligne partageant le même modèle de sauvegarde :
 
-La version actuelle est la **1.8.0** (`versionCode 12`). L’application est en français,
-mono-utilisateur et entièrement locale : elle ne demande aucun compte et ne déclare aucune
-permission Internet.
+- l’application Android **Suivi Muscu**, version **1.8.0** (`versionCode 12`) ;
+- la PWA **Repère Web**, version **1.8.0**, destinée notamment à l’iPhone.
 
-## Fonctionnalités actuelles
+Les deux versions sont en français, mono-utilisateur et sans compte. Les données restent sur
+l’appareil ; il n’existe ni serveur applicatif, ni télémétrie, ni synchronisation automatique.
 
-- bibliothèque modifiable de programmes, séances, exercices et groupes musculaires ;
-- programme actif avec cycle de séances et jours d’entraînement indicatifs ;
-- séance en cours autosauvegardée, préremplie depuis la dernière performance connue ;
-- saisie des charges, répétitions, RIR et temps de repos, avec ajout ou retrait de séries ;
-- historique éditable avec date, heure, durée, note et suppression temporairement annulable ;
-- tendances par exercice, séance et muscle sur 4, 12, 52 semaines ou tout l’historique ;
-- volume musculaire pondéré : principal ×1, secondaire ×0,5, tertiaire ×0,25 ;
-- suivi du poids avec saisie libre, moyenne glissante sur 7 jours et graphique ;
-- suivi nutritionnel progressif : plusieurs apports calories/protéines par jour, totaux et courbes ;
-- exports CSV séparés pour les performances, les pesées et la nutrition ;
-- export Markdown complet de tout le contexte pour une analyse dans ChatGPT ;
-- sauvegarde et restauration JSON complètes via le sélecteur de fichiers Android ;
-- cinq thèmes visuels — Original, Kawaii, Pastel, OLED et Épuré — avec variantes claire,
-  sombre ou synchronisée sur Android ; Kawaii mélange rose, jaune et bleu pastel avec quelques
-  surfaces blanches ou noires et des mascottes.
+## Installer sur iPhone
 
-Une description fonctionnelle détaillée se trouve dans [docs/PRODUCT.md](docs/PRODUCT.md).
+La PWA est publiée à l’adresse **https://0zakoz.github.io/repere/**. Dans Safari sur l’iPhone :
 
-## Données et sauvegarde
+1. ouvrir l’adresse une première fois avec une connexion Internet ;
+2. toucher **Partager**, puis **Sur l’écran d’accueil** ;
+3. activer **Ouvrir comme app web**, puis toucher **Ajouter** ;
+4. lancer ensuite Repère depuis son icône, comme une application classique.
 
-Les données vivent dans le stockage privé de l’application. Désinstaller l’application ou
-effacer ses données Android les supprime du téléphone.
+Après le premier chargement, l’application et les données courantes fonctionnent hors ligne.
+Il est prudent de créer régulièrement une **Sauvegarde complète JSON** depuis les réglages et
+de la conserver dans Fichiers/iCloud. Supprimer les données de Safari ou la PWA peut supprimer
+la base locale.
 
-Avant une réinstallation ou un changement de téléphone, ouvrir les réglages depuis le
-Journal, créer une **Sauvegarde complète**, puis copier le fichier JSON hors du téléphone.
-Les CSV sont destinés à l’analyse ; seul le JSON permet une restauration complète.
+## Fonctionnalités
 
-La structure des données et les règles de compatibilité sont décrites dans
-[docs/DATA.md](docs/DATA.md).
+- bibliothèque modifiable de programmes, modèles de séance, exercices et muscles ;
+- programme actif, cycle A/B, jours indicatifs et gestion des créneaux manqués ;
+- séance autosauvegardée, préremplie depuis la dernière performance réelle de chaque exercice ;
+- charges, répétitions, RIR, séries prévues/réalisées et chronomètre de repos flottant ;
+- historique éditable avec date, heure, durée et note ;
+- tendances par exercice, séance et muscle ;
+- volume musculaire principal ×1, secondaire ×0,5 et tertiaire ×0,25 ;
+- poids, moyenne mobile sur sept jours et graphique ;
+- apports progressifs de calories/protéines et courbes quotidiennes ;
+- thèmes Original, Kawaii, Pastel, OLED et Épuré, en clair, sombre ou système ;
+- exports CSV, export Markdown complet pour ChatGPT et sauvegarde/restauration JSON.
 
-## Compiler et installer
+Une description détaillée des parcours se trouve dans [docs/PRODUCT.md](docs/PRODUCT.md).
 
-Pré-requis : Windows PowerShell et l’outillage local conservé dans `.tooling/`. Le projet
-utilise JDK 17, Gradle Wrapper et le SDK Android local sans modifier l’installation Java du
-système.
+## Données entre Android et iPhone
+
+Android et la PWA possèdent chacun leur base locale : une saisie faite sur un téléphone
+n’apparaît pas automatiquement sur l’autre. Pour transférer ou recopier l’état complet,
+exporter une **Sauvegarde complète JSON** sur l’appareil source puis la restaurer sur l’autre.
+La restauration remplace l’état du client cible après confirmation. Les préférences de thème
+restent propres à chaque appareil.
+
+La structure et les règles de compatibilité sont décrites dans [docs/DATA.md](docs/DATA.md).
+
+## Développer
+
+### Android
+
+Le projet utilise JDK 17, Gradle Wrapper et le SDK Android local sous `.tooling/` :
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
-Le script exécute les tests unitaires, le lint Android et la compilation release. L’APK est
-produit dans `app/build/outputs/apk/release/app-release.apk`.
+Avec un téléphone autorisé en débogage USB, `install.ps1` utilise `adb install -r` pour mettre
+à jour l’application sans effacer ses données. Les clés et fichiers privés restent exclus de
+Git.
 
-Avec un téléphone autorisé en débogage USB :
+### Web
+
+La PWA est statique, sans dépendance npm ni compilation :
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
+cd web
+npm test
+npm run check
+npm run serve
 ```
 
-Le script utilise `adb install -r` afin de mettre à jour l’application sans effacer ses
-données. Une mise à jour doit être signée avec la même clé que l’installation existante.
-Les fichiers `release-private/`, `keystore.properties` et `local.properties` sont donc
-conservés localement et exclus de Git.
+Le serveur local répond sur `http://127.0.0.1:4173/`. Un workflow GitHub Actions teste puis
+publie le dossier `web/` sur GitHub Pages à chaque modification de la branche `main`.
 
-Le guide complet de développement et de livraison se trouve dans
-[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
-
-## Documentation du projet
-
-Le sommaire destiné aux développeurs et aux agents est [docs/README.md](docs/README.md).
-L’architecture du code est décrite dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-`AGENTS.md` est le point d’entrée des agents travaillant dans ce dépôt. La documentation
-décrit l’état présent du projet ; elle n’interdit pas de le faire évoluer lorsque la demande
-de l’utilisateur le justifie.
+Le guide complet est [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) et l’architecture est décrite
+dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). `AGENTS.md` est le point d’entrée des agents
+travaillant dans ce dépôt ; la documentation décrit l’état présent sans figer les évolutions.

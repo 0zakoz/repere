@@ -14,6 +14,7 @@ restrictions sur les évolutions futures.
   ou exports.
 - [DEVELOPMENT.md](DEVELOPMENT.md) : lire avant de compiler, tester, signer, installer ou livrer
   l’application.
+- [WEB.md](WEB.md) : lire avant de modifier, tester, publier ou installer la PWA sur iPhone.
 
 Pour une correction ou une fonctionnalité substantielle, lire au minimum ce sommaire,
 `PRODUCT.md`, `ARCHITECTURE.md` et le document spécialisé correspondant à la zone touchée.
@@ -27,7 +28,8 @@ alors la documentation dans la même modification.
 - libellé Android actuel : **Suivi Muscu** ;
 - package et `applicationId` : `fr.suivimuscu.app` ;
 - version : **1.8.0**, `versionCode 12` ;
-- date de cet état des lieux : 30 août 2026.
+- PWA publiée : `https://0zakoz.github.io/repere/`, version **1.8.0** ;
+- date de cet état des lieux : 31 août 2026.
 
 Le nom du dépôt et le libellé visible de l’application sont volontairement documentés comme
 deux faits distincts. Cette documentation ne renomme ni le package ni l’application installée.

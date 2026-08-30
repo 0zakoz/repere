@@ -7,6 +7,11 @@ conserver un historique exploitable et rendre visibles les tendances sans score 
 recommandation automatique. L’application fonctionne hors ligne, pour un seul utilisateur et
 uniquement en kilogrammes.
 
+Le produit existe sous deux formes : l’application Android **Suivi Muscu** et la PWA
+**Repère Web**, installable depuis Safari sur iPhone. Elles suivent les mêmes règles métier et
+le même schéma de sauvegarde, mais conservent chacune leurs données localement et ne se
+synchronisent pas automatiquement.
+
 Au premier lancement, elle crée un programme **Full body** actif qui alterne les séances A et
 B les lundi, mercredi et vendredi. Les exercices et associations musculaires fournis sont
 définis dans `SeedData.kt` ; ils restent entièrement modifiables depuis la Bibliothèque.
@@ -113,7 +118,7 @@ disparaître avec la suppression de son dernier exercice.
 
 Les réglages proposent cinq thèmes : **Original**, **Kawaii**, **Pastel**, **OLED** et
 **Épuré**. Chacun possède une variante claire et sombre ; le mode **Système** suit le réglage
-Android. Une galerie donne un aperçu des palettes et applique immédiatement le choix, qui est
+Android ou iOS. Une galerie donne un aperçu des palettes et applique immédiatement le choix, qui est
 conservé localement sur le téléphone.
 
 Les thèmes adaptent les couleurs, formes, typographies, graphiques, cartes musculaires et
@@ -146,6 +151,8 @@ demande confirmation et remplace l’état local uniquement après décodage et 
 - un seul utilisateur, un seul programme actif et un seul brouillon ;
 - pas de supersets, dropsets, objectifs de repos, calcul de 1RM ou recommandations de charge ;
 - pas d’import CSV ;
+- pas de synchronisation automatique entre Android et Web : le transfert passe par la
+  sauvegarde JSON complète ;
 - pas de tests instrumentés ou Compose UI dans le dépôt à ce jour ; les parcours sur téléphone
   sont validés manuellement lorsque nécessaire.
 

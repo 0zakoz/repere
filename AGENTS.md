@@ -20,6 +20,8 @@ seulement les changements gratuits qui élargissent inutilement le périmètre.
 - Préserver les données déjà présentes sur le téléphone. Toute évolution incompatible de
   `AppState` doit prévoir une migration explicite et une restauration des anciennes
   sauvegardes lorsque cela reste raisonnablement possible.
+- Préserver également les données IndexedDB de la PWA. Ne pas modifier la compatibilité JSON
+  Android/Web sans migration et tests croisés explicites.
 - Ne jamais désinstaller l’application, vider ses données, remplacer sa clé de signature ou
   exécuter une commande ADB destructive sans autorisation explicite.
 - Ne jamais versionner `keystore.properties`, `local.properties`, `release-private/`,
@@ -53,3 +55,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 - État métier : `AppState`, sérialisé en JSON et stocké dans une ligne Room.
 - Schéma métier actuel : version 4 ; schéma Room : version 1.
 - Interface : Jetpack Compose / Material 3, cinq onglets, aucune permission Internet.
+- Client Web : PWA statique sous `web/`, IndexedDB local, service worker hors ligne et
+  publication GitHub Pages par `.github/workflows/pages.yml`.
+- Avant une modification Web, lire [docs/WEB.md](docs/WEB.md), exécuter `npm test` et
+  `npm run check` depuis `web/`, puis vérifier le parcours mobile lorsque l’outillage le permet.

@@ -1,0 +1,17 @@
+{
+  "id": "/repere/",
+  "name": "Repère — Suivi Muscu",
+  "short_name": "Repère",
+  "description": "Carnet de musculation, poids et nutrition hors ligne.",
+  "lang": "fr-FR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f1115",
+  "theme_color": "#0f1115",
+  "icons": [
+    { "src": "./assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

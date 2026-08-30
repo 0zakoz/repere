@@ -2,9 +2,9 @@
 
 ## Vue d’ensemble
 
-Le dépôt contient une application Android mono-module (`app`) et mono-activité. L’interface est
-écrite en Kotlin avec Jetpack Compose et Material 3. Il n’existe ni module réseau, ni framework
-d’injection, ni couche de domaine séparée.
+Le dépôt contient une application Android mono-module (`app`) et une PWA statique (`web`).
+L’interface Android est écrite en Kotlin avec Jetpack Compose et Material 3 ; la version Web
+utilise des modules JavaScript natifs, CSS et IndexedDB sans framework ni dépendance npm.
 
 ```text
 MainActivity / écrans Compose
@@ -20,6 +20,23 @@ MainActivity / écrans Compose
 `MainViewModel` via une factory, observe son `StateFlow<AppState?>` et affiche les cinq onglets.
 La navigation ne repose pas sur Navigation Compose : `MainTab` et quelques états Compose
 pilotent les écrans et boîtes de dialogue.
+
+Le client Web suit une structure parallèle plus légère :
+
+```text
+app.js / ui.js / charts.js
+          ↓ actions
+        rules.js
+          ↓ AppState complet
+        store.js
+          ↓ clone structuré
+     IndexedDB (1 enregistrement)
+```
+
+`index.html` charge `app.js`, qui rend les cinq onglets et délègue les événements. `rules.js`
+porte les calculs purs réutilisés par les tests. `state.js` normalise et migre les sauvegardes,
+`seed.js` reproduit le premier lancement Android et `exporters.js` génère les fichiers locaux.
+`sw.js` met en cache le cœur statique pour les ouvertures hors ligne.
 
 ## Responsabilités principales
 
@@ -83,6 +100,12 @@ Une seule séance `DRAFT` non supprimée est attendue. Lorsqu’elle est affich�
 `WorkoutScreen` remplace temporairement l’interface principale. Le bouton retour Android passe
 par le dialogue de sortie de cet écran.
 
+Sur le Web, le même invariant est appliqué par `activeDraft`. Chaque mutation remplace
+immédiatement l’état en mémoire et met en file une sauvegarde du snapshot complet dans
+IndexedDB. Les préférences d’apparence restent dans `localStorage`; elles ne traversent pas la
+sauvegarde JSON. Le service worker ne met en cache que le code et les ressources, jamais les
+données personnelles.
+
 ## Choix techniques actuels
 
 - JDK 17, Gradle 9.5, Android Gradle Plugin 9.3.0 et Kotlin 2.3.21 ;
@@ -92,6 +115,8 @@ par le dialogue de sortie de cet écran.
   tactiles adaptés au téléphone ;
 - aucune permission Internet dans le manifeste ;
 - `android:allowBackup="false"` : la portabilité repose sur la sauvegarde JSON explicite.
+- PWA sans étape de build, installable en mode `standalone`, avec chemins relatifs compatibles
+  avec le sous-répertoire GitHub Pages `/repere/`.
 
 Les versions exactes déclarées dans `app/build.gradle.kts` et le Gradle Wrapper restent les
 sources de vérité.
@@ -112,3 +137,8 @@ leurs licences OFL afin de rester disponibles hors ligne.
   snapshot dans toute nouvelle statistique.
 - Les sélecteurs de fichiers Android sont gérés dans `MainActivity`; ils n’exigent pas de
   permission globale de stockage.
+- Android et Web partagent la forme de `AppState`, pas une bibliothèque de code. Toute règle
+  métier commune modifiée dans un client doit donc être vérifiée dans l’autre et documentée si
+  leur comportement diverge volontairement.
+- IndexedDB et le stockage Safari ne constituent pas une sauvegarde. La restauration JSON est
+  le seul mécanisme actuel de transfert entre appareils.
