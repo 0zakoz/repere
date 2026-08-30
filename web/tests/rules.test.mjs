@@ -60,19 +60,19 @@ test("les créneaux manqués avancent le cycle sans créer de performance", () =
 
 test("poids et nutrition sont agrégés par jour", () => {
   let state = createSeedState();
-  state = saveWeight(state,"2026-08-29","80,2");
-  state = saveWeight(state,"2026-08-31","79.8");
-  assert.equal(weightTrend(state.bodyWeights,null,"2026-08-31").at(-1).average7DaysKg,80);
-  state = saveNutrition(state,{date:"2026-08-31",calories:"650",protein:"42,5"});
-  state = saveNutrition(state,{date:"2026-08-31",calories:"400",protein:"18"});
-  const total = nutritionTrend(state.nutritionEntries,null,"2026-08-31")[0];
+  state = saveWeight(state,"2020-08-29","80,2");
+  state = saveWeight(state,"2020-08-31","79.8");
+  assert.equal(weightTrend(state.bodyWeights,null,"2020-08-31").at(-1).average7DaysKg,80);
+  state = saveNutrition(state,{date:"2020-08-31",calories:"650",protein:"42,5"});
+  state = saveNutrition(state,{date:"2020-08-31",calories:"400",protein:"18"});
+  const total = nutritionTrend(state.nutritionEntries,null,"2020-08-31")[0];
   assert.deepEqual([total.caloriesKcal,total.proteinGrams,total.entryCount],[1050,60.5,2]);
   assert.match(nutritionCsv(state),/650,42.5,1050,60.5/);
 });
 
 test("les exports excluent les séries non réalisées et documentent la nutrition", () => {
   let state = createSeedState();
-  state = saveNutrition(state,{date:"2026-08-31",calories:500,protein:30});
+  state = saveNutrition(state,{date:"2020-08-31",calories:500,protein:30});
   assert.equal(workoutCsv(state).trim().split("\n").length,1);
   const markdown = markdownExport(state);
   assert.match(markdown,/Suivi nutritionnel/);
