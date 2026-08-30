@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.suivimuscu.app.MainViewModel
+import fr.suivimuscu.app.adjustedReps
 import fr.suivimuscu.app.data.*
 import kotlinx.coroutines.delay
 
@@ -375,14 +376,26 @@ private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainVie
                 }
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = {
-                    val value = (set.weightKg.replace(',', '.').toDoubleOrNull() ?: 0.0) - 0.5
-                    viewModel.updateSet(exercise.id, set.id, weight = formatKg(value.coerceAtLeast(0.0)))
-                }) { Text("−0,5 kg") }
-                TextButton(onClick = {
-                    val value = (set.weightKg.replace(',', '.').toDoubleOrNull() ?: 0.0) + 0.5
-                    viewModel.updateSet(exercise.id, set.id, weight = formatKg(value))
-                }) { Text("+0,5 kg") }
+                TextButton(
+                    enabled = repsNumber != null && repsNumber > 1,
+                    onClick = {
+                        viewModel.updateSet(
+                            exercise.id,
+                            set.id,
+                            reps = adjustedReps(set.reps, -1),
+                        )
+                    },
+                ) { Text("−1 rep") }
+                TextButton(
+                    enabled = repsNumber == null || repsNumber < 999,
+                    onClick = {
+                        viewModel.updateSet(
+                            exercise.id,
+                            set.id,
+                            reps = adjustedReps(set.reps, 1),
+                        )
+                    },
+                ) { Text("+1 rep") }
                 Spacer(Modifier.weight(1f))
                 set.restBeforeSeconds?.let {
                     Text("repos ${formatSeconds(it)}", style = MaterialTheme.typography.bodySmall, color = Cyan)
@@ -411,6 +424,3 @@ private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainVie
 }
 
 private fun formatSeconds(seconds: Int): String = "%d:%02d".format(seconds / 60, seconds % 60)
-
-private fun formatKg(value: Double): String =
-    if (value % 1.0 == 0.0) value.toInt().toString() else "%.2f".format(java.util.Locale.US, value).trimEnd('0')

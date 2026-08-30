@@ -11,6 +11,7 @@ import fr.suivimuscu.app.data.WorkoutSet
 import fr.suivimuscu.app.data.WorkoutStatus
 import fr.suivimuscu.app.data.TemplateExercise
 import fr.suivimuscu.app.data.WorkoutTemplate
+import fr.suivimuscu.app.data.ProgramEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -19,6 +20,65 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class WorkoutRulesTest {
+    @Test
+    fun repAdjustmentUsesOneToNineHundredNinetyNineBounds() {
+        assertEquals("1", adjustedReps("", 1))
+        assertEquals("2", adjustedReps("1", 1))
+        assertEquals("7", adjustedReps("8", -1))
+        assertEquals("1", adjustedReps("1", -1))
+        assertEquals("999", adjustedReps("999", 1))
+    }
+
+    @Test
+    fun lastPerformanceIgnoresSkippedEmptyDraftAndDeletedOccurrences() {
+        fun exercise(id: String, firstCompleted: Boolean, secondCompleted: Boolean) = LoggedExercise(
+            id = "logged-$id",
+            exerciseId = "curl",
+            nameSnapshot = "Curl",
+            repMinSnapshot = 6,
+            repMaxSnapshot = 12,
+            musclesSnapshot = emptyList(),
+            plannedSets = 2,
+            sets = listOf(
+                WorkoutSet("$id-1", 1, "20", "10", completed = firstCompleted),
+                WorkoutSet("$id-2", 2, "20", "8", completed = secondCompleted),
+            ),
+        )
+        fun workout(
+            id: String,
+            date: String,
+            loggedExercise: LoggedExercise,
+            status: WorkoutStatus = WorkoutStatus.COMPLETED,
+            deletedAt: Long? = null,
+        ) = WorkoutLog(
+            id = id,
+            templateId = "a",
+            templateNameSnapshot = "A",
+            localDate = date,
+            startedAt = 1_000,
+            status = status,
+            deletedAt = deletedAt,
+            exercises = listOf(loggedExercise),
+        )
+
+        val state = AppState(
+            workoutLogs = listOf(
+                workout("old-complete", "2026-07-01", exercise("old", true, true)),
+                workout("latest-performed", "2026-07-08", exercise("partial", true, false)),
+                workout("empty", "2026-07-15", exercise("empty", false, false)),
+                workout("draft", "2026-07-22", exercise("draft", true, true), WorkoutStatus.DRAFT),
+                workout("deleted", "2026-07-29", exercise("deleted", true, true), deletedAt = 5),
+            ),
+            programEvents = listOf(ProgramEvent("skip", "program", "a", "2026-08-01", "SKIPPED")),
+        )
+
+        val performance = lastPerformedExercise(state, "curl", ZoneId.of("Europe/Paris"))
+
+        assertEquals("latest-performed", performance?.workout?.id)
+        assertEquals("20", performance?.completedSetAt(1)?.weightKg)
+        assertEquals(null, performance?.completedSetAt(2))
+    }
+
     @Test
     fun setRequiresExplicitWeightAndReps() {
         assertFalse(isSetInputValid(WorkoutSet("1", 1, weightKg = "50", reps = "")))

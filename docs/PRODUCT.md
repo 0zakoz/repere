@@ -32,9 +32,13 @@ définis dans `SeedData.kt` ; ils restent entièrement modifiables depuis la Bib
 - Le modèle fournit l’ordre des exercices, le nombre prévu de séries et la plage de
   répétitions.
 - Charge et répétitions sont préremplies, par rang de série, depuis la dernière occurrence
-  terminée du même exercice. Ces valeurs ne sont pas considérées comme réalisées.
+  terminée où le même exercice contient au moins une série réellement validée. Une séance où
+  l’exercice est resté vide ne masque donc pas la performance précédente. Ces valeurs ne sont
+  pas considérées comme réalisées.
 - Une série n’est validable que si elle contient une charge numérique positive ou nulle et un
   nombre entier de répétitions strictement positif. Le RIR est facultatif, de 0 à 3.
+- Les boutons `−1 rep` et `+1 rep` ajustent rapidement les répétitions entre 1 et 999 ; `+1`
+  part de 1 lorsque le champ est vide.
 - Modifier une série déjà validée l’invalide ; le bouton de validation la confirme et masque
   le clavier. La série suivante du même exercice déclenche un chronomètre de repos flottant.
 - Le repos peut être enregistré avec **Série suivante**, ignoré, ou enregistré automatiquement
@@ -95,9 +99,11 @@ disparaître avec la suppression de son dernier exercice.
 
 ### Données et fichiers
 
-L’icône de réglages du Journal ouvre les exports CSV des performances et des pesées, la
-sauvegarde JSON complète et la restauration. La restauration demande confirmation et remplace
-l’état local uniquement après décodage et migration réussis.
+L’icône de réglages du Journal ouvre les exports CSV des performances et des pesées, un export
+Markdown complet destiné à ChatGPT, la sauvegarde JSON complète et la restauration. Le Markdown
+regroupe programmes, bibliothèque, dernières performances, historique visible, brouillon,
+événements et pesées en distinguant explicitement les séries non réalisées. La restauration
+demande confirmation et remplace l’état local uniquement après décodage et migration réussis.
 
 ## Limites actuelles
 
@@ -109,5 +115,5 @@ l’état local uniquement après décodage et migration réussis.
 - pas de tests instrumentés ou Compose UI dans le dépôt à ce jour ; les parcours sur téléphone
   sont validés manuellement lorsque nécessaire.
 
-Ces limites décrivent la version 1.4.1. Elles peuvent évoluer si une nouvelle demande le
+Ces limites décrivent la version 1.5.0. Elles peuvent évoluer si une nouvelle demande le
 justifie.

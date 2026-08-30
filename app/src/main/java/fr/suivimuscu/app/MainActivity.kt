@@ -2,6 +2,8 @@ package fr.suivimuscu.app
 
 import android.os.Bundle
 import android.widget.Toast
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -17,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.suivimuscu.app.data.CsvExporter
+import fr.suivimuscu.app.data.CompleteMarkdownExporter
 import fr.suivimuscu.app.data.WeightCsvExporter
 import fr.suivimuscu.app.ui.*
 import kotlinx.coroutines.launch
@@ -72,6 +75,16 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab) {
                 writer.write(WeightCsvExporter.export(appState))
             }
             Toast.makeText(context, "Export des pesées enregistré", Toast.LENGTH_SHORT).show()
+        }
+    }
+    val markdownLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/markdown")
+    ) { uri ->
+        uri?.let {
+            context.contentResolver.openOutputStream(it)?.bufferedWriter(Charsets.UTF_8)?.use { writer ->
+                writer.write(CompleteMarkdownExporter.export(appState, BuildConfig.VERSION_NAME))
+            }
+            Toast.makeText(context, "Export complet enregistré", Toast.LENGTH_SHORT).show()
         }
     }
     val backupLauncher = rememberLauncherForActivityResult(
@@ -188,7 +201,10 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab) {
             icon = { Icon(Icons.Default.Settings, null) },
             title = { Text("Données et fichiers") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     ListItem(
                         headlineContent = { Text("Exporter les performances") },
                         supportingContent = { Text("CSV, une ligne par série") },
@@ -206,6 +222,14 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab) {
                         Icon(Icons.Default.MonitorWeight, null)
                         Spacer(Modifier.width(8.dp))
                         Text("Exporter les pesées")
+                    }
+                    OutlinedButton(onClick = {
+                        showSettings = false
+                        markdownLauncher.launch("suivi-muscu-complet-${LocalDate.now()}.md")
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Description, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Exporter tout pour ChatGPT (.md)")
                     }
                     HorizontalDivider()
                     Button(onClick = {

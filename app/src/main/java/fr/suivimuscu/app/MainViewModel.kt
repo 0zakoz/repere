@@ -39,6 +39,34 @@ internal fun workoutChronologyTimestamp(log: WorkoutLog, zone: ZoneId = ZoneId.s
     }.getOrDefault(log.startedAt)
 }
 
+internal data class ExercisePerformance(
+    val workout: WorkoutLog,
+    val exercise: LoggedExercise,
+)
+
+internal fun lastPerformedExercise(
+    state: AppState,
+    exerciseId: String,
+    zone: ZoneId = ZoneId.systemDefault(),
+): ExercisePerformance? = state.workoutLogs.asSequence()
+    .filter { it.status == WorkoutStatus.COMPLETED && it.deletedAt == null }
+    .sortedByDescending { workoutChronologyTimestamp(it, zone) }
+    .flatMap { workout -> workout.exercises.asSequence().map { workout to it } }
+    .firstOrNull { (_, exercise) ->
+        exercise.exerciseId == exerciseId &&
+            exercise.sets.any { it.completed && isSetInputValid(it) }
+    }
+    ?.let { (workout, exercise) -> ExercisePerformance(workout, exercise) }
+
+internal fun ExercisePerformance.completedSetAt(order: Int): WorkoutSet? =
+    exercise.sets.firstOrNull { it.order == order && it.completed && isSetInputValid(it) }
+
+internal fun adjustedReps(current: String, delta: Int): String {
+    require(delta == -1 || delta == 1) { "L’ajustement doit être de −1 ou +1" }
+    val value = current.toIntOrNull() ?: 0
+    return (value + delta).coerceIn(1, 999).toString()
+}
+
 internal fun normalizedFinishedExercises(exercises: List<LoggedExercise>): List<LoggedExercise> =
     exercises.map { exercise ->
         exercise.copy(
@@ -383,15 +411,11 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
             val activeProgram = state.programs.firstOrNull { it.active && !it.archived }
             val loggedExercises = template.exercises.mapNotNull { entry ->
                 val exercise = state.exercises.firstOrNull { it.id == entry.exerciseId } ?: return@mapNotNull null
-                val last = state.workoutLogs.asSequence()
-                    .filter { it.status == WorkoutStatus.COMPLETED && it.deletedAt == null }
-                    .sortedByDescending { workoutChronologyTimestamp(it) }
-                    .flatMap { it.exercises.asSequence() }
-                    .firstOrNull { it.exerciseId == exercise.id }
+                val lastPerformance = lastPerformedExercise(state, exercise.id)
                 val repMin = entry.repMinOverride ?: exercise.defaultRepMin
                 val repMax = entry.repMaxOverride ?: exercise.defaultRepMax
                 val sets = (1..entry.targetSets).map { order ->
-                    val previous = last?.sets?.firstOrNull { it.order == order && it.completed }
+                    val previous = lastPerformance?.completedSetAt(order)
                     WorkoutSet(
                         id = id(),
                         order = order,

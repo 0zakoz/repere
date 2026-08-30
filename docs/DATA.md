@@ -109,3 +109,19 @@ n’invente aucune valeur pour les jours sans pesée.
 Changer une colonne ou sa sémantique peut casser les analyses externes de l’utilisateur. Une
 évolution doit donc être explicite, testée et accompagnée d’une mise à jour de la version
 d’export lorsque la compatibilité l’exige.
+
+## Export Markdown complet
+
+`CompleteMarkdownExporter` produit un document `.md` destiné à être lu directement ou joint à
+une conversation ChatGPT. Il couvre tout l’état utile de l’application : programmes actifs et
+archivés, modèles, bibliothèque, dernière performance réelle de chaque exercice, séances
+terminées visibles, brouillon, événements de cycle et pesées.
+
+La dernière performance réelle est l’occurrence chronologiquement la plus récente qui contient
+au moins une série validée et valide. Les brouillons, séances supprimées et exercices laissés
+vides ne la remplacent pas. Une occurrence partielle reste la référence, mais seuls ses rangs de
+série réalisés sont proposés au prochain démarrage.
+
+Les séries non validées restent présentes dans l’historique Markdown avec l’état **Non
+réalisée**. Leurs éventuelles valeurs préremplies ne doivent jamais être interprétées comme une
+performance. Les séances marquées supprimées sont exclues, conformément aux autres vues.
