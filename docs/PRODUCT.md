@@ -63,6 +63,18 @@ définis dans `SeedData.kt` ; ils restent entièrement modifiables depuis la Bib
   jours disponibles, avec filtres 4, 12, 52 semaines ou Tout.
 - Une mesure existante peut être modifiée, supprimée ou exportée en CSV.
 
+### Nutrition
+
+- Les calories et protéines sont saisies sous forme d’apports successifs : petit-déjeuner,
+  repas, collation ou toute autre portion peut être ajoutée au fil de la journée.
+- Une journée peut contenir autant d’entrées que nécessaire. Chaque entrée conserve son heure,
+  ses calories et ses grammes de protéines ; elle peut être modifiée ou supprimée séparément.
+- L’en-tête additionne immédiatement toutes les entrées de la date sélectionnée.
+- Deux courbes séparées affichent les totaux quotidiens de calories et de protéines sur 4, 12,
+  52 semaines ou tout l’historique. Les jours sans saisie restent simplement absents.
+- L’historique brut peut être exporté en CSV ; la sauvegarde JSON et l’export Markdown complet
+  incluent également toutes les entrées nutritionnelles.
+
 ### Tendances
 
 Toutes les vues ignorent les brouillons et les séances supprimées, avec des filtres 4, 12,
@@ -105,9 +117,9 @@ Android. Une galerie donne un aperçu des palettes et applique immédiatement le
 conservé localement sur le téléphone.
 
 Les thèmes adaptent les couleurs, formes, typographies, graphiques, cartes musculaires et
-barres système sans changer les parcours. Kawaii mélange systématiquement quatre familles de
-surfaces — rose pâle en dominante, jaune pâle, bleu pâle et quelques touches sauge — sur un fond
-pastel dégradé, en clair comme en sombre. Ses formes sont très arrondies et ses en-têtes,
+barres système sans changer les parcours. Kawaii mélange le rose pâle dominant, le jaune pâle
+et le bleu pâle sur un fond pastel dégradé, avec quelques surfaces blanc nacré en clair ou noir
+prune en sombre. Il n’utilise plus de vert sauge et son onglet actif est signalé en rose. Ses formes sont très arrondies et ses en-têtes,
 navigation et cartes utilisent des cœurs, étoiles, lapins, pandas et un pictogramme de chat
 siamois. Les décorations restent sans fonction et ne remplacent pas les libellés accessibles.
 OLED utilise un fond réellement noir en mode sombre ; Épuré reste minimal avec des accents
@@ -121,10 +133,10 @@ elle reste mise en avant sans halo opaque, en mode clair comme en mode sombre.
 
 ### Données et fichiers
 
-L’icône de réglages du Journal ouvre les exports CSV des performances et des pesées, un export
+L’icône de réglages du Journal ouvre les exports CSV des performances, des pesées et de la nutrition, un export
 Markdown complet destiné à ChatGPT, la sauvegarde JSON complète et la restauration. Le Markdown
 regroupe programmes, bibliothèque, dernières performances, historique visible, brouillon,
-événements et pesées en distinguant explicitement les séries non réalisées. La restauration
+événements, pesées et apports nutritionnels en distinguant explicitement les séries non réalisées. La restauration
 demande confirmation et remplace l’état local uniquement après décodage et migration réussis.
 
 ## Limites actuelles
@@ -137,5 +149,5 @@ demande confirmation et remplace l’état local uniquement après décodage et 
 - pas de tests instrumentés ou Compose UI dans le dépôt à ce jour ; les parcours sur téléphone
   sont validés manuellement lorsque nécessaire.
 
-Ces limites décrivent la version 1.7.0. Elles peuvent évoluer si une nouvelle demande le
+Ces limites décrivent la version 1.8.0. Elles peuvent évoluer si une nouvelle demande le
 justifie.

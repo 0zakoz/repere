@@ -17,7 +17,7 @@ import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 import kotlin.math.roundToInt
 
-enum class MainTab { JOURNAL, WEIGHT, TRENDS, LIBRARY }
+enum class MainTab { JOURNAL, WEIGHT, NUTRITION, TRENDS, LIBRARY }
 
 /** Offset retiré au temps écoulé quand le repos est enregistré automatiquement à la saisie de la série suivante. */
 internal const val AUTO_REST_OFFSET_SECONDS = 40L
@@ -226,6 +226,39 @@ internal fun calculateBodyWeightTrend(
             average7DaysKg = windowValues.average(),
         )
     }
+}
+
+internal fun normalizedCalories(value: String): Int? =
+    value.trim().toIntOrNull()?.takeIf { it in 1..100_000 }
+
+internal fun normalizedProteinGrams(value: String): Double? {
+    val parsed = value.trim().replace(',', '.').toDoubleOrNull() ?: return null
+    if (!parsed.isFinite() || parsed < 0.0 || parsed > 10_000.0) return null
+    return (parsed * 10.0).roundToInt() / 10.0
+}
+
+internal fun calculateNutritionTrend(
+    entries: List<NutritionEntry>,
+    weeks: Int?,
+    today: LocalDate = LocalDate.now(),
+    zone: ZoneId = ZoneId.systemDefault(),
+): List<NutritionDayTotal> {
+    val cutoff = weeks?.let { today.minusWeeks(it.toLong()) }
+    return entries.mapNotNull { entry ->
+        runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry }
+    }
+        .filter { (date, _) -> !date.isAfter(today) && (cutoff == null || !date.isBefore(cutoff)) }
+        .groupBy({ it.first }, { it.second })
+        .toSortedMap()
+        .map { (date, dayEntries) ->
+            NutritionDayTotal(
+                date = date.toString(),
+                timestamp = date.atStartOfDay(zone).toInstant().toEpochMilli(),
+                caloriesKcal = dayEntries.sumOf { it.caloriesKcal },
+                proteinGrams = dayEntries.sumOf { it.proteinGrams },
+                entryCount = dayEntries.size,
+            )
+        }
 }
 
 internal fun calculateMusclePeriodStats(
@@ -732,6 +765,40 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
 
     fun bodyWeightTrend(weeks: Int?): List<BodyWeightTrendPoint> =
         calculateBodyWeightTrend(_state.value?.bodyWeights.orEmpty(), weeks)
+
+    fun saveNutritionEntry(
+        entryId: String?,
+        dateValue: String,
+        caloriesValue: String,
+        proteinValue: String,
+    ): Result<Unit> = runCatching {
+        val date = LocalDate.parse(dateValue)
+        require(!date.isAfter(LocalDate.now())) { "La date ne peut pas être dans le futur" }
+        val calories = requireNotNull(normalizedCalories(caloriesValue)) { "Calories invalides" }
+        val protein = requireNotNull(normalizedProteinGrams(proteinValue)) { "Protéines invalides" }
+        val now = System.currentTimeMillis()
+        mutate { state ->
+            val existing = entryId?.let { id -> state.nutritionEntries.firstOrNull { it.id == id } }
+            require(entryId == null || existing != null) { "Apport introuvable" }
+            val entry = existing?.copy(
+                date = date.toString(),
+                caloriesKcal = calories,
+                proteinGrams = protein,
+                updatedAt = now,
+            ) ?: NutritionEntry(id(), date.toString(), calories, protein, now)
+            state.copy(
+                nutritionEntries = (state.nutritionEntries.filterNot { it.id == entry.id } + entry)
+                    .sortedWith(compareBy<NutritionEntry> { it.date }.thenBy { it.createdAt }),
+            )
+        }
+    }
+
+    fun deleteNutritionEntry(entryId: String) = mutate { state ->
+        state.copy(nutritionEntries = state.nutritionEntries.filterNot { it.id == entryId })
+    }
+
+    fun nutritionTrend(weeks: Int?): List<NutritionDayTotal> =
+        calculateNutritionTrend(_state.value?.nutritionEntries.orEmpty(), weeks)
 
     fun archiveExercise(exerciseId: String) = mutate { state ->
         state.copy(exercises = state.exercises.map {

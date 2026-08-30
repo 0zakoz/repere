@@ -2,10 +2,10 @@
 
 Repère est le dépôt de l’application Android personnelle actuellement affichée sous le nom
 **Suivi Muscu** sur le téléphone. Elle sert à enregistrer rapidement les séances de
-musculation, suivre les performances et le poids corporel, puis exporter les données pour
+musculation, suivre les performances, le poids corporel et la nutrition, puis exporter les données pour
 une analyse externe.
 
-La version actuelle est la **1.7.0** (`versionCode 11`). L’application est en français,
+La version actuelle est la **1.8.0** (`versionCode 12`). L’application est en français,
 mono-utilisateur et entièrement locale : elle ne demande aucun compte et ne déclare aucune
 permission Internet.
 
@@ -19,12 +19,13 @@ permission Internet.
 - tendances par exercice, séance et muscle sur 4, 12, 52 semaines ou tout l’historique ;
 - volume musculaire pondéré : principal ×1, secondaire ×0,5, tertiaire ×0,25 ;
 - suivi du poids avec saisie libre, moyenne glissante sur 7 jours et graphique ;
-- exports CSV séparés pour les performances et les pesées ;
+- suivi nutritionnel progressif : plusieurs apports calories/protéines par jour, totaux et courbes ;
+- exports CSV séparés pour les performances, les pesées et la nutrition ;
 - export Markdown complet de tout le contexte pour une analyse dans ChatGPT ;
 - sauvegarde et restauration JSON complètes via le sélecteur de fichiers Android ;
 - cinq thèmes visuels — Original, Kawaii, Pastel, OLED et Épuré — avec variantes claire,
-  sombre ou synchronisée sur Android ; Kawaii mélange rose, jaune, bleu et sauge pastel avec
-  des mascottes.
+  sombre ou synchronisée sur Android ; Kawaii mélange rose, jaune et bleu pastel avec quelques
+  surfaces blanches ou noires et des mascottes.
 
 Une description fonctionnelle détaillée se trouve dans [docs/PRODUCT.md](docs/PRODUCT.md).
 

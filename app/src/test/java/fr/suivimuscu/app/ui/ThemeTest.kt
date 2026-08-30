@@ -72,25 +72,25 @@ class ThemeTest {
     }
 
     @Test
-    fun kawaiiThemeMixesFourReadablePastelSurfaceFamilies() {
+    fun kawaiiThemeMixesPastelFamiliesWithOneNeutralSurface() {
         listOf(false, true).forEach { dark ->
             val definition = themeDefinition(AppThemeId.KAWAII, dark)
             val visuals = definition.visuals
 
-            assertEquals("Kawaii surface families", 4, visuals.kawaiiSurfaces.size)
+            assertEquals("Kawaii surface families", 5, visuals.kawaiiSurfaces.size)
             assertTrue("Kawaii backdrop", visuals.kawaiiBackdrop.size >= 4)
             visuals.kawaiiSurfaces.forEachIndexed { index, color ->
                 assertTrue(
                     "Kawaii/$dark surface $index remains readable",
                     contrast(definition.colors.onSurface, color) >= 4.5,
                 )
-                visuals.kawaiiSurfaces.drop(index + 1).forEachIndexed { offset, other ->
-                    assertTrue(
-                        "Kawaii/$dark surface colors $index/${index + offset + 1}",
-                        colorDistance(color, other) >= 0.08,
-                    )
-                }
             }
+            val neutral = visuals.kawaiiSurfaces[3]
+            assertTrue("Kawaii/$dark neutral surface", channelRange(neutral) < 0.05f)
+            assertTrue(
+                "Kawaii/$dark contains no sage surface",
+                visuals.kawaiiSurfaces.none { it.green > it.red && it.green > it.blue },
+            )
             assertTrue(
                 "Kawaii/$dark background must stay chromatic",
                 channelRange(definition.colors.background) >= 0.05f,

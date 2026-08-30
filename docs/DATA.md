@@ -9,7 +9,7 @@ clés inconnues ignorées et format lisible.
 Deux versions coexistent :
 
 - schéma Room : **1**, décrit dans `app/schemas/fr.suivimuscu.app.data.AppDatabase/1.json` ;
-- schéma métier `AppState.schemaVersion` : **3**, migré par `StateMigrations`.
+- schéma métier `AppState.schemaVersion` : **4**, migré par `StateMigrations`.
 
 Une modification des classes sérialisées ne nécessite pas forcément une migration Room. Elle
 peut en revanche nécessiter une nouvelle version métier, des valeurs par défaut et une étape de
@@ -32,6 +32,8 @@ ni ajoutés aux exports. Une valeur absente ou inconnue revient à **Original so
 - `programEvents` : séances accomplies ou créneaux sautés dans un programme ;
 - `workoutLogs` : brouillons, séances terminées et suppressions temporaires ;
 - `bodyWeights` : une mesure datée, avec dates de création et modification.
+- `nutritionEntries` : apports datés et horodatés contenant calories et protéines ; plusieurs
+  entrées peuvent appartenir à la même journée.
 
 Un `WorkoutLog` conserve notamment la date locale choisie, les horodatages de début/fin, le
 modèle et le programme éventuels, une note et les exercices. Chaque `LoggedExercise` stocke
@@ -58,6 +60,8 @@ calculs et exports la normalisent au besoin avec un point décimal.
 - Les moyennes de RIR et de repos ignorent les valeurs absentes.
 - Le poids est unique par date dans les règles métier ; une nouvelle sauvegarde du même jour
   remplace l’entrée logique et conserve sa date de création.
+- La nutrition est cumulative : les tendances regroupent les entrées par date et additionnent
+  calories et protéines, sans inventer de valeur pour les jours absents.
 
 ## Migrations existantes
 
@@ -65,6 +69,8 @@ calculs et exports la normalisent au besoin avec un point décimal.
   l’avant-bras, adapte les exercices et leurs snapshots historiques sans perdre les rôles.
 - v2 → v3 : introduit le schéma comprenant les pesées ; les valeurs par défaut assurent la
   compatibilité des anciens JSON.
+- v3 → v4 : introduit les entrées nutritionnelles multiples ; les anciens états reçoivent une
+  liste vide et conservent toutes leurs données existantes.
 
 `StateMigrations.toLatest` refuse les versions hors de l’intervalle supporté. Toute nouvelle
 migration doit être déterministe, testée depuis les versions réellement existantes et appliquée
@@ -79,7 +85,7 @@ La sauvegarde est l’encodage complet de `AppState`. La restauration :
 3. demande confirmation avant remplacement ;
 4. ne modifie l’état qu’en cas de validation réussie.
 
-Le JSON n’est pas chiffré. Il peut contenir notes, performances, poids et historique complet.
+Le JSON n’est pas chiffré. Il peut contenir notes, performances, poids, nutrition et historique complet.
 Pour valider une évolution, ajouter au minimum un test de lecture d’un ancien état et un test
 d’aller-retour du schéma courant.
 
@@ -111,6 +117,18 @@ date,weight_kg,average_7_days_kg,created_at,updated_at
 La moyenne utilise les mesures disponibles entre la date et ses six jours précédents ; elle
 n’invente aucune valeur pour les jours sans pesée.
 
+## Export nutritionnel
+
+`NutritionCsvExporter` produit une ligne par apport, triée par date puis heure de création :
+
+```text
+date,time,calories_kcal,protein_g,daily_calories_kcal,daily_protein_g,
+created_at,updated_at,entry_id
+```
+
+Les colonnes quotidiennes répètent le total de la journée afin que le fichier reste directement
+analysable tout en conservant le détail progressif des saisies.
+
 Changer une colonne ou sa sémantique peut casser les analyses externes de l’utilisateur. Une
 évolution doit donc être explicite, testée et accompagnée d’une mise à jour de la version
 d’export lorsque la compatibilité l’exige.
@@ -120,7 +138,8 @@ d’export lorsque la compatibilité l’exige.
 `CompleteMarkdownExporter` produit un document `.md` destiné à être lu directement ou joint à
 une conversation ChatGPT. Il couvre tout l’état utile de l’application : programmes actifs et
 archivés, modèles, bibliothèque, dernière performance réelle de chaque exercice, séances
-terminées visibles, brouillon, événements de cycle et pesées.
+terminées visibles, brouillon, événements de cycle, pesées et chaque apport nutritionnel avec
+ses totaux quotidiens.
 
 La dernière performance réelle est l’occurrence chronologiquement la plus récente qui contient
 au moins une série validée et valide. Les brouillons, séances supprimées et exercices laissés

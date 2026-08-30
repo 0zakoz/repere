@@ -131,8 +131,18 @@ data class BodyWeightEntry(
 )
 
 @Serializable
+data class NutritionEntry(
+    val id: String,
+    val date: String,
+    val caloriesKcal: Int,
+    val proteinGrams: Double,
+    val createdAt: Long,
+    val updatedAt: Long = createdAt,
+)
+
+@Serializable
 data class AppState(
-    val schemaVersion: Int = 3,
+    val schemaVersion: Int = 4,
     val muscles: List<MuscleGroup> = emptyList(),
     val exercises: List<Exercise> = emptyList(),
     val templates: List<WorkoutTemplate> = emptyList(),
@@ -140,6 +150,7 @@ data class AppState(
     val programEvents: List<ProgramEvent> = emptyList(),
     val workoutLogs: List<WorkoutLog> = emptyList(),
     val bodyWeights: List<BodyWeightEntry> = emptyList(),
+    val nutritionEntries: List<NutritionEntry> = emptyList(),
 )
 
 data class ExerciseHistoryPoint(
@@ -199,4 +210,12 @@ data class BodyWeightTrendPoint(
     val timestamp: Long,
     val weightKg: Double,
     val average7DaysKg: Double,
+)
+
+data class NutritionDayTotal(
+    val date: String,
+    val timestamp: Long,
+    val caloriesKcal: Int,
+    val proteinGrams: Double,
+    val entryCount: Int,
 )

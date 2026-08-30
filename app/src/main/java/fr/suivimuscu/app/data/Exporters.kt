@@ -82,3 +82,30 @@ object WeightCsvExporter {
     private fun formatWeight(value: Double): String =
         String.format(java.util.Locale.ROOT, "%.1f", value)
 }
+
+object NutritionCsvExporter {
+    fun export(state: AppState): String = buildString {
+        append('\uFEFF')
+        appendLine("date,time,calories_kcal,protein_g,daily_calories_kcal,daily_protein_g,created_at,updated_at,entry_id")
+        val totals = state.nutritionEntries.groupBy { it.date }.mapValues { (_, entries) ->
+            entries.sumOf { it.caloriesKcal } to entries.sumOf { it.proteinGrams }
+        }
+        state.nutritionEntries
+            .sortedWith(compareBy<NutritionEntry> { it.date }.thenBy { it.createdAt })
+            .forEach { entry ->
+                val instant = Instant.ofEpochMilli(entry.createdAt)
+                val time = instant.atZone(java.time.ZoneId.systemDefault()).toLocalTime().withNano(0)
+                val total = totals.getValue(entry.date)
+                appendLine(
+                    listOf(
+                        entry.date, time, entry.caloriesKcal, formatProtein(entry.proteinGrams),
+                        total.first, formatProtein(total.second), instant,
+                        Instant.ofEpochMilli(entry.updatedAt), entry.id,
+                    ).joinToString(",")
+                )
+            }
+    }
+
+    private fun formatProtein(value: Double): String =
+        String.format(java.util.Locale.ROOT, "%.1f", value)
+}

@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.suivimuscu.app.data.CsvExporter
 import fr.suivimuscu.app.data.CompleteMarkdownExporter
 import fr.suivimuscu.app.data.WeightCsvExporter
+import fr.suivimuscu.app.data.NutritionCsvExporter
 import fr.suivimuscu.app.data.AppearancePreferences
 import fr.suivimuscu.app.ui.*
 import kotlinx.coroutines.launch
@@ -82,6 +83,16 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab, appearance: Appearan
             Toast.makeText(context, "Export des pesées enregistré", Toast.LENGTH_SHORT).show()
         }
     }
+    val nutritionCsvLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        uri?.let {
+            context.contentResolver.openOutputStream(it)?.bufferedWriter(Charsets.UTF_8)?.use { writer ->
+                writer.write(NutritionCsvExporter.export(appState))
+            }
+            Toast.makeText(context, "Export nutrition enregistré", Toast.LENGTH_SHORT).show()
+        }
+    }
     val markdownLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("text/markdown")
     ) { uri ->
@@ -130,9 +141,9 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab, appearance: Appearan
     var createTemplateRequest by remember { mutableIntStateOf(0) }
     val navigationItemColors = if (appVisuals.showKawaiiDecorations) {
         NavigationBarItemDefaults.colors(
-            selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
             selectedTextColor = MaterialTheme.colorScheme.onSurface,
-            indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -161,6 +172,13 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab, appearance: Appearan
                     colors = navigationItemColors,
                 )
                 NavigationBarItem(
+                    selected = tab == MainTab.NUTRITION,
+                    onClick = { viewModel.tab.value = MainTab.NUTRITION },
+                    icon = { KawaiiNavigationIcon("🍓", Icons.Default.Restaurant) },
+                    label = { Text("Nutrition") },
+                    colors = navigationItemColors,
+                )
+                NavigationBarItem(
                     selected = tab == MainTab.TRENDS,
                     onClick = { viewModel.tab.value = MainTab.TRENDS },
                     icon = { KawaiiNavigationIcon("🐱", Icons.Default.ShowChart) },
@@ -171,7 +189,7 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab, appearance: Appearan
                     selected = tab == MainTab.LIBRARY,
                     onClick = { viewModel.tab.value = MainTab.LIBRARY },
                     icon = { KawaiiNavigationIcon("🎀", Icons.Default.MenuBook) },
-                    label = { Text("Bibliothèque") },
+                    label = { Text("Biblio") },
                     colors = navigationItemColors,
                 )
             }
@@ -203,6 +221,12 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab, appearance: Appearan
                 state = appState,
                 viewModel = viewModel,
                 onExport = { weightCsvLauncher.launch("suivi-poids-${LocalDate.now()}.csv") },
+                modifier = Modifier.padding(padding),
+            )
+            MainTab.NUTRITION -> NutritionScreen(
+                state = appState,
+                viewModel = viewModel,
+                onExport = { nutritionCsvLauncher.launch("suivi-nutrition-${LocalDate.now()}.csv") },
                 modifier = Modifier.padding(padding),
             )
             MainTab.TRENDS -> TrendsScreen(appState, viewModel, Modifier.padding(padding))
@@ -259,6 +283,14 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab, appearance: Appearan
                     }
                     OutlinedButton(onClick = {
                         showSettings = false
+                        nutritionCsvLauncher.launch("suivi-nutrition-${LocalDate.now()}.csv")
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Restaurant, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Exporter la nutrition")
+                    }
+                    OutlinedButton(onClick = {
+                        showSettings = false
                         markdownLauncher.launch("suivi-muscu-complet-${LocalDate.now()}.md")
                     }, modifier = Modifier.fillMaxWidth()) {
                         Icon(Icons.Default.Description, null)
@@ -296,7 +328,7 @@ private fun AppRoot(viewModel: MainViewModel, tab: MainTab, appearance: Appearan
             onDismissRequest = { pendingRestore = null },
             icon = { Icon(Icons.Default.Warning, null) },
             title = { Text("Remplacer toutes les données ?") },
-            text = { Text("La sauvegarde choisie remplacera la bibliothèque, les programmes, les pesées et tout l’historique local.") },
+            text = { Text("La sauvegarde choisie remplacera la bibliothèque, les programmes, les pesées, la nutrition et tout l’historique local.") },
             confirmButton = {
                 TextButton(onClick = {
                     val result = viewModel.restoreBackup(backup)

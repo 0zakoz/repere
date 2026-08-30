@@ -1,6 +1,7 @@
 package fr.suivimuscu.app.data
 
 import fr.suivimuscu.app.calculateBodyWeightTrend
+import fr.suivimuscu.app.calculateNutritionTrend
 import fr.suivimuscu.app.isSetInputValid
 import fr.suivimuscu.app.lastPerformedExercise
 import fr.suivimuscu.app.workoutChronologyTimestamp
@@ -25,6 +26,13 @@ object CompleteMarkdownExporter {
         val latestWeight = state.bodyWeights.maxWithOrNull(
             compareBy<BodyWeightEntry> { it.date }.thenBy { it.updatedAt },
         )
+        val nutritionTotals = calculateNutritionTrend(
+            state.nutritionEntries,
+            weeks = null,
+            today = generatedAt.atZone(zoneId).toLocalDate(),
+            zone = zoneId,
+        )
+        val latestNutrition = nutritionTotals.lastOrNull()
 
         appendLine("# Suivi Muscu — export complet pour analyse")
         appendLine()
@@ -55,6 +63,13 @@ object CompleteMarkdownExporter {
             "Dernière pesée",
             latestWeight?.let { "${it.date} — ${formatNumber(it.weightKg)} kg" } ?: "Aucune",
         )
+        appendField("Apports nutritionnels", state.nutritionEntries.size.toString())
+        appendField(
+            "Dernier jour nutritionnel",
+            latestNutrition?.let {
+                "${it.date} — ${it.caloriesKcal} kcal, ${formatNumber(it.proteinGrams)} g de protéines (${it.entryCount} apport${if (it.entryCount > 1) "s" else ""})"
+            } ?: "Aucun",
+        )
         appendLine()
 
         appendPrograms(state)
@@ -65,6 +80,7 @@ object CompleteMarkdownExporter {
         appendWorkoutHistory(drafts, "Séance en cours", zoneId)
         appendProgramEvents(state, zoneId)
         appendWeights(state, generatedAt, zoneId)
+        appendNutrition(state, generatedAt, zoneId)
 
         appendLine("## Règles de lecture")
         appendLine()
@@ -341,6 +357,40 @@ object CompleteMarkdownExporter {
                     "${table(code(entry.id))} |",
             )
         }
+        appendLine()
+    }
+
+    private fun StringBuilder.appendNutrition(state: AppState, generatedAt: Instant, zoneId: ZoneId) {
+        appendLine("## Suivi nutritionnel")
+        appendLine()
+        appendLine(
+            "Chaque ligne représente un apport saisi au fil de la journée. Les totaux journaliers " +
+                "additionnent toutes les entrées de la même date.",
+        )
+        appendLine()
+        if (state.nutritionEntries.isEmpty()) {
+            appendLine("Aucun apport nutritionnel.")
+            appendLine()
+            return
+        }
+        val today = generatedAt.atZone(zoneId).toLocalDate()
+        val totals = calculateNutritionTrend(state.nutritionEntries, weeks = null, today = today, zone = zoneId)
+            .associateBy { it.date }
+        appendLine("| Date | Heure de saisie | Calories | Protéines | Total quotidien | Total protéines | Créée le | Modifiée le | Identifiant |")
+        appendLine("|---|---|---:|---:|---:|---:|---|---|---|")
+        state.nutritionEntries
+            .sortedWith(compareBy<NutritionEntry> { it.date }.thenBy { it.createdAt })
+            .forEach { entry ->
+                val total = totals[entry.date]
+                appendLine(
+                    "| ${table(entry.date)} | ${table(formatEpoch(entry.createdAt, zoneId).substringAfter(' '))} | " +
+                        "${entry.caloriesKcal} kcal | ${formatNumber(entry.proteinGrams)} g | " +
+                        "${total?.caloriesKcal ?: entry.caloriesKcal} kcal | " +
+                        "${formatNumber(total?.proteinGrams ?: entry.proteinGrams)} g | " +
+                        "${table(formatEpoch(entry.createdAt, zoneId))} | ${table(formatEpoch(entry.updatedAt, zoneId))} | " +
+                        "${table(code(entry.id))} |",
+                )
+            }
         appendLine()
     }
 

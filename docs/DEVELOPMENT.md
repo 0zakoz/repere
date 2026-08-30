@@ -42,6 +42,7 @@ Les tests JVM sous `app/src/test` couvrent notamment :
 - chronologie de l’historique et agrégations de séances/muscles ;
 - rôles musculaires et suppressions en cascade de la Bibliothèque ;
 - saisie du poids, préremplissage, moyenne sur sept jours et CSV ;
+- saisie nutritionnelle cumulative, validation, agrégation quotidienne et CSV ;
 - seed initial, migrations du schéma métier et export CSV ;
 - domaines et contraste des graphiques Canvas ;
 - décodage des préférences d’apparence, lisibilité des dix palettes et distinction des séries

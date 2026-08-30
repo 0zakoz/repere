@@ -9,6 +9,7 @@ import fr.suivimuscu.app.data.MuscleAssignment
 import fr.suivimuscu.app.data.MuscleGroup
 import fr.suivimuscu.app.data.MuscleRole
 import fr.suivimuscu.app.data.MuscleSnapshot
+import fr.suivimuscu.app.data.NutritionEntry
 import fr.suivimuscu.app.data.ProgramEvent
 import fr.suivimuscu.app.data.TemplateExercise
 import fr.suivimuscu.app.data.TrainingProgram
@@ -117,6 +118,10 @@ class MarkdownExporterTest {
                 BodyWeightEntry("weight-1", "2026-07-01", 80.0, 1_000),
                 BodyWeightEntry("weight-2", "2026-07-03", 82.0, 2_000),
             ),
+            nutritionEntries = listOf(
+                NutritionEntry("meal-1", "2026-07-03", 650, 42.5, 3_000),
+                NutritionEntry("meal-2", "2026-07-03", 400, 18.0, 4_000),
+            ),
         )
 
         val markdown = CompleteMarkdownExporter.export(
@@ -141,6 +146,10 @@ class MarkdownExporterTest {
         assertTrue(markdown.contains("Créneau sauté"))
         assertTrue(markdown.contains("81,0 kg"))
         assertTrue(markdown.contains("Pectoraux \\| haut"))
+        assertTrue(markdown.contains("Suivi nutritionnel"))
+        assertTrue(markdown.contains("1 050 kcal").or(markdown.contains("1050 kcal")))
+        assertTrue(markdown.contains("60,5 g"))
+        assertTrue(markdown.contains("meal-2"))
         assertFalse(markdown.contains("deleted-newer"))
     }
 }

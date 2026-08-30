@@ -17,7 +17,7 @@ MainActivity / écrans Compose
 ```
 
 `SuiviMuscuApplication` crée manuellement la base et le repository. `MainActivity` obtient le
-`MainViewModel` via une factory, observe son `StateFlow<AppState?>` et affiche les quatre onglets.
+`MainViewModel` via une factory, observe son `StateFlow<AppState?>` et affiche les cinq onglets.
 La navigation ne repose pas sur Navigation Compose : `MainTab` et quelques états Compose
 pilotent les écrans et boîtes de dialogue.
 
@@ -28,7 +28,7 @@ pilotent les écrans et boîtes de dialogue.
 - `MainActivity.kt` observe les préférences d’apparence, assemble le thème, la barre de
   navigation, les lanceurs du Storage Access Framework et les dialogues de réglages.
 - `MainViewModel.kt` contient les mutations métier, le cycle des programmes, la gestion du
-  brouillon, les règles de suppression, le poids et les agrégations de tendances.
+  brouillon, les règles de suppression, le poids, la nutrition et les agrégations de tendances.
 - `SuiviMuscuApplication.kt` construit `AppDatabase` et `AppRepository` sans conteneur DI.
 
 Le ViewModel est aujourd’hui le principal point de coordination. Une future évolution peut
@@ -46,7 +46,7 @@ ce découpage n’est pas une contrainte d’architecture.
   lancement.
 - `StateMigrations.kt` fait évoluer les sauvegardes et l’état persistant jusqu’au schéma métier
   courant.
-- `Exporters.kt` produit les deux CSV indépendamment de l’interface.
+- `Exporters.kt` produit les trois CSV indépendamment de l’interface.
 
 Room est ici un conteneur durable et observable, pas un modèle relationnel normalisé. La version
 Room et la version du JSON sont donc indépendantes.
@@ -56,6 +56,7 @@ Room et la version du JSON sont donc indépendantes.
 - `JournalScreen.kt` : suggestion du programme, brouillon en pause et historique.
 - `WorkoutScreen.kt` : éditeur de séance, séries, RIR et chronomètre flottant.
 - `WeightScreen.kt` : saisie quotidienne, historique, graphique et suppression.
+- `NutritionScreen.kt` : apports progressifs, totaux quotidiens, édition et courbes calories/protéines.
 - `TrendsScreen.kt` : sélecteurs et présentations des trois familles de tendances.
 - `LibraryScreen.kt` : CRUD, archivage et activation des éléments de bibliothèque.
 - `Charts.kt` : graphiques Canvas réutilisés pour les exercices et barres musculaires.

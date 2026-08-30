@@ -55,7 +55,8 @@ class StateMigrationsTest {
 
         val migrated = StateMigrations.toLatest(legacy)
 
-        assertEquals(3, migrated.schemaVersion)
+        assertEquals(4, migrated.schemaVersion)
+        assertTrue(migrated.nutritionEntries.isEmpty())
         assertFalse(migrated.muscles.any { it.id == "forearms" })
         assertTrue(migrated.muscles.any { it.id == "forearm_flexors" })
         assertTrue(migrated.muscles.any { it.id == "forearm_extensors" })
