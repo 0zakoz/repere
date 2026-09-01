@@ -55,6 +55,7 @@ npm run serve
 Les tests JVM sous `app/src/test` couvrent notamment :
 
 - validité des séries, chronomètre et conservation des éléments planifiés ;
+- réordonnancement des exercices et correction des durées de séance ou de repos ;
 - chronologie de l’historique et agrégations de séances/muscles ;
 - rôles musculaires et suppressions en cascade de la Bibliothèque ;
 - saisie du poids, préremplissage, moyenne sur sept jours et CSV ;

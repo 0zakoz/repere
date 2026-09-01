@@ -103,6 +103,67 @@ class WorkoutRulesTest {
     }
 
     @Test
+    fun exerciseOrderMovesWithoutChangingExerciseIdentity() {
+        fun logged(id: String) = LoggedExercise(
+            id = id,
+            exerciseId = "exercise-$id",
+            nameSnapshot = id,
+            repMinSnapshot = 6,
+            repMaxSnapshot = 10,
+            musclesSnapshot = emptyList(),
+            plannedSets = 1,
+            sets = listOf(WorkoutSet("set-$id", 1)),
+        )
+        val exercises = listOf(logged("a"), logged("b"), logged("c"))
+
+        assertEquals(listOf("b", "a", "c"), movedExerciseLogs(exercises, "b", -1).map { it.id })
+        assertEquals(listOf("a", "c", "b"), movedExerciseLogs(exercises, "b", 1).map { it.id })
+        assertEquals(exercises, movedExerciseLogs(exercises, "a", -1))
+    }
+
+    @Test
+    fun durationsCanBeCorrectedWithoutChangingTheDataSchema() {
+        val exercise = LoggedExercise(
+            id = "logged",
+            exerciseId = "curl",
+            nameSnapshot = "Curl synthétique",
+            repMinSnapshot = 6,
+            repMaxSnapshot = 12,
+            musclesSnapshot = emptyList(),
+            plannedSets = 1,
+            sets = listOf(WorkoutSet("set", 1, restBeforeSeconds = 600)),
+            restStartedAt = 10_000,
+            restTargetSetOrder = 1,
+        )
+        val draft = WorkoutLog(
+            id = "draft",
+            templateId = "a",
+            templateNameSnapshot = "A",
+            localDate = "2026-09-01",
+            startedAt = 1_000,
+            exercises = listOf(exercise),
+        )
+
+        val correctedDraft = workoutWithDuration(draft, 3_600, now = 10_000_000)
+        assertEquals(6_400_000, correctedDraft.startedAt)
+
+        val completedEdit = draft.copy(endedAt = 5_000, editingCompletedLog = true)
+        val correctedCompleted = workoutWithDuration(completedEdit, 1_800, now = 99_000_000)
+        assertEquals(1_801_000L, correctedCompleted.endedAt)
+        assertEquals(draft.startedAt, correctedCompleted.startedAt)
+
+        val correctedRest = workoutWithSetRest(draft, "logged", "set", 95)
+        assertEquals(95, correctedRest.exercises.single().sets.single().restBeforeSeconds)
+        assertEquals(null, correctedRest.exercises.single().restStartedAt)
+        assertEquals(null, correctedRest.exercises.single().restTargetSetOrder)
+        assertEquals(
+            null,
+            workoutWithSetRest(correctedRest, "logged", "set", null)
+                .exercises.single().sets.single().restBeforeSeconds,
+        )
+    }
+
+    @Test
     fun finishingKeepsEveryPlannedExerciseAndSet() {
         val exercises = (1..7).map { exerciseOrder ->
             LoggedExercise(

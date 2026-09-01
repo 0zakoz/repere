@@ -49,8 +49,14 @@ définis dans `SeedData.kt` ; ils restent entièrement modifiables depuis la Bib
 - Le repos peut être enregistré avec **Série suivante**, ignoré, ou enregistré automatiquement
   lors de la saisie de la série cible. Ce dernier chemin retranche actuellement une constante
   de 40 secondes destinée au temps d’exécution estimé.
-- Séries et exercices peuvent être ajoutés ou retirés. Un nouvel exercice peut être créé
-  directement pendant la séance et rejoint alors aussi la Bibliothèque.
+- Le repos enregistré avant chaque série peut être corrigé ou effacé manuellement. La durée
+  totale de la séance est elle aussi modifiable, pendant la saisie ou en rééditant l’historique.
+- Séries et exercices peuvent être ajoutés ou retirés. Le sélecteur d’exercice consulte toute
+  la Bibliothèque active, avec recherche et défilement, et masque seulement les exercices déjà
+  présents dans la séance. Un nouvel exercice peut être créé directement pendant la séance et
+  rejoint alors aussi la Bibliothèque.
+- Les exercices du brouillon peuvent être déplacés vers le haut ou le bas ; cet ordre est
+  conservé dans le log et ses exports.
 - Terminer exige au moins une série valide. Les exercices et séries prévus restent dans le log,
   même vides, afin de conserver le dénominateur prévu des tendances.
 - La date et la note sont modifiables. L’heure initiale de départ reste le critère secondaire
@@ -103,8 +109,8 @@ l’exercice n’existe plus dans la Bibliothèque, son snapshot historique sert
 - **Programmes** : nom, cycle ordonné de séances, jours indicatifs, activation unique,
   archivage/réactivation et suppression lorsque le programme n’est pas utilisé dans un log
   terminé.
-- **Séances** : modèles nommés contenant une liste ordonnée d’exercices, un nombre de séries et
-  éventuellement une plage de répétitions propre au modèle.
+- **Séances** : modèles nommés contenant une liste ordonnée et réorganisable d’exercices, un
+  nombre de séries et éventuellement une plage de répétitions propre au modèle.
 - **Exercices** : nom, plage de répétitions, consigne permanente et muscles principaux,
   secondaires ou tertiaires.
 - **Muscles** : groupes libres, dont les fléchisseurs et extenseurs de l’avant-bras séparés.
@@ -156,5 +162,5 @@ demande confirmation et remplace l’état local uniquement après décodage et 
 - pas de tests instrumentés ou Compose UI dans le dépôt à ce jour ; les parcours sur téléphone
   sont validés manuellement lorsque nécessaire.
 
-Ces limites décrivent la version 1.8.0. Elles peuvent évoluer si une nouvelle demande le
+Ces limites décrivent la version 1.9.0. Elles peuvent évoluer si une nouvelle demande le
 justifie.

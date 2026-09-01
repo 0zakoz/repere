@@ -45,7 +45,8 @@ porte les calculs purs réutilisés par les tests. `state.js` normalise et migre
 - `MainActivity.kt` observe les préférences d’apparence, assemble le thème, la barre de
   navigation, les lanceurs du Storage Access Framework et les dialogues de réglages.
 - `MainViewModel.kt` contient les mutations métier, le cycle des programmes, la gestion du
-  brouillon, les règles de suppression, le poids, la nutrition et les agrégations de tendances.
+  brouillon, son réordonnancement, la correction des durées, les règles de suppression, le
+  poids, la nutrition et les agrégations de tendances.
 - `SuiviMuscuApplication.kt` construit `AppDatabase` et `AppRepository` sans conteneur DI.
 
 Le ViewModel est aujourd’hui le principal point de coordination. Une future évolution peut

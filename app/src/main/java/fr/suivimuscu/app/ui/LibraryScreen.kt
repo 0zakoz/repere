@@ -255,7 +255,7 @@ private fun TemplatesLibrary(
     if (creating || editing != null) {
         TemplateDialog(
             initial = editing ?: WorkoutTemplate("", "", emptyList()),
-            exercises = state.exercises.filterNot { it.archived },
+            exercises = state.exercises,
             onDismiss = { creating = false; editing = null },
             onSave = { viewModel.saveTemplate(it); creating = false; editing = null },
         )
@@ -271,6 +271,11 @@ private fun TemplateDialog(
 ) {
     var name by remember { mutableStateOf(initial.name) }
     var selected by remember { mutableStateOf(initial.exercises) }
+    val orderedExercises = remember(exercises, selected) {
+        val selectedIds = selected.map { it.exerciseId }
+        selectedIds.mapNotNull { id -> exercises.firstOrNull { it.id == id } } +
+            exercises.filter { !it.archived && it.id !in selectedIds }.sortedBy { it.name.lowercase() }
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (initial.id.isBlank()) "Nouvelle séance" else "Modifier la séance") },
@@ -278,8 +283,9 @@ private fun TemplateDialog(
             LazyColumn(Modifier.heightIn(max = 520.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 item { OutlinedTextField(name, { name = it }, label = { Text("Nom") }, singleLine = true) }
                 item { Text("Exercices et séries", fontWeight = FontWeight.Bold) }
-                items(exercises, key = { it.id }) { exercise ->
+                items(orderedExercises, key = { it.id }) { exercise ->
                     val entry = selected.firstOrNull { it.exerciseId == exercise.id }
+                    val selectedIndex = selected.indexOfFirst { it.exerciseId == exercise.id }
                     Surface(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .45f), shape = MaterialTheme.shapes.medium) {
                         Column(Modifier.padding(8.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -292,20 +298,45 @@ private fun TemplateDialog(
                                 )
                                 Text(exercise.name, Modifier.weight(1f))
                                 if (entry != null) {
+                                    IconButton(
+                                        enabled = selectedIndex > 0,
+                                        onClick = {
+                                            selected = selected.toMutableList().also { list ->
+                                                val value = list.removeAt(selectedIndex)
+                                                list.add(selectedIndex - 1, value)
+                                            }
+                                        },
+                                    ) { Icon(Icons.Default.ArrowUpward, "Monter l’exercice") }
+                                    IconButton(
+                                        enabled = selectedIndex in 0 until selected.lastIndex,
+                                        onClick = {
+                                            selected = selected.toMutableList().also { list ->
+                                                val value = list.removeAt(selectedIndex)
+                                                list.add(selectedIndex + 1, value)
+                                            }
+                                        },
+                                    ) { Icon(Icons.Default.ArrowDownward, "Descendre l’exercice") }
+                                }
+                            }
+                            if (entry != null) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text("Séries", style = MaterialTheme.typography.labelMedium)
+                                    Spacer(Modifier.weight(1f))
                                     IconButton(onClick = {
                                         if (entry.targetSets > 1) selected = selected.map {
                                             if (it.exerciseId == exercise.id) it.copy(targetSets = it.targetSets - 1) else it
                                         }
-                                    }) { Icon(Icons.Default.Remove, null) }
+                                    }) { Icon(Icons.Default.Remove, "Retirer une série") }
                                     Text(entry.targetSets.toString(), fontWeight = FontWeight.Bold)
                                     IconButton(onClick = {
                                         selected = selected.map {
                                             if (it.exerciseId == exercise.id) it.copy(targetSets = (it.targetSets + 1).coerceAtMost(20)) else it
                                         }
-                                    }) { Icon(Icons.Default.Add, null) }
+                                    }) { Icon(Icons.Default.Add, "Ajouter une série") }
                                 }
-                            }
-                            if (entry != null) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     OutlinedTextField(
                                         value = entry.repMinOverride?.toString().orEmpty(),

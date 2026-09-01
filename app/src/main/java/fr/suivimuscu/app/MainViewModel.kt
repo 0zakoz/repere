@@ -21,6 +21,7 @@ enum class MainTab { JOURNAL, WEIGHT, NUTRITION, TRENDS, LIBRARY }
 
 /** Offset retiré au temps écoulé quand le repos est enregistré automatiquement à la saisie de la série suivante. */
 internal const val AUTO_REST_OFFSET_SECONDS = 40L
+internal const val MAX_EDITABLE_DURATION_SECONDS = 24 * 60 * 60
 
 internal fun isSetInputValid(set: WorkoutSet): Boolean =
     set.reps.toIntOrNull()?.let { it > 0 } == true &&
@@ -65,6 +66,57 @@ internal fun adjustedReps(current: String, delta: Int): String {
     require(delta == -1 || delta == 1) { "L’ajustement doit être de −1 ou +1" }
     val value = current.toIntOrNull() ?: 0
     return (value + delta).coerceIn(1, 999).toString()
+}
+
+internal fun movedExerciseLogs(
+    exercises: List<LoggedExercise>,
+    exerciseLogId: String,
+    delta: Int,
+): List<LoggedExercise> {
+    require(delta == -1 || delta == 1) { "Le déplacement doit être de −1 ou +1" }
+    val from = exercises.indexOfFirst { it.id == exerciseLogId }
+    if (from < 0) return exercises
+    val to = from + delta
+    if (to !in exercises.indices) return exercises
+    return exercises.toMutableList().also { list ->
+        val item = list.removeAt(from)
+        list.add(to, item)
+    }
+}
+
+internal fun workoutWithDuration(
+    workout: WorkoutLog,
+    durationSeconds: Int,
+    now: Long,
+): WorkoutLog {
+    val durationMillis = durationSeconds.coerceIn(0, MAX_EDITABLE_DURATION_SECONDS) * 1000L
+    return if (workout.editingCompletedLog && workout.endedAt != null) {
+        workout.copy(endedAt = workout.startedAt + durationMillis)
+    } else {
+        workout.copy(startedAt = now - durationMillis)
+    }
+}
+
+internal fun workoutWithSetRest(
+    workout: WorkoutLog,
+    exerciseLogId: String,
+    setId: String,
+    restSeconds: Int?,
+): WorkoutLog {
+    val normalized = restSeconds?.coerceIn(0, MAX_EDITABLE_DURATION_SECONDS)
+    return workout.copy(exercises = workout.exercises.map { exercise ->
+        if (exercise.id != exerciseLogId) exercise else {
+            val targetOrder = exercise.sets.firstOrNull { it.id == setId }?.order
+            val stopsTimer = targetOrder != null && exercise.restTargetSetOrder == targetOrder
+            exercise.copy(
+                sets = exercise.sets.map { set ->
+                    if (set.id == setId) set.copy(restBeforeSeconds = normalized) else set
+                },
+                restStartedAt = if (stopsTimer) null else exercise.restStartedAt,
+                restTargetSetOrder = if (stopsTimer) null else exercise.restTargetSetOrder,
+            )
+        }
+    })
 }
 
 internal fun normalizedFinishedExercises(exercises: List<LoggedExercise>): List<LoggedExercise> =
@@ -493,6 +545,10 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         if (runCatching { LocalDate.parse(date) }.isSuccess) updateDraft { it.copy(localDate = date) }
     }
 
+    fun updateWorkoutDuration(durationSeconds: Int, now: Long = System.currentTimeMillis()) {
+        updateDraft { workoutWithDuration(it, durationSeconds, now) }
+    }
+
     private fun updateDraft(block: (WorkoutLog) -> WorkoutLog) {
         val draftId = activeDraft()?.id ?: return
         mutate { state ->
@@ -576,6 +632,10 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         }
     }
 
+    fun updateSetRest(exerciseLogId: String, setId: String, restSeconds: Int?) {
+        updateDraft { workoutWithSetRest(it, exerciseLogId, setId, restSeconds) }
+    }
+
     fun addSet(exerciseLogId: String) {
         updateDraft { log ->
             log.copy(exercises = log.exercises.map { exercise ->
@@ -640,6 +700,10 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
 
     fun removeExerciseFromDraft(exerciseLogId: String) {
         updateDraft { it.copy(exercises = it.exercises.filterNot { ex -> ex.id == exerciseLogId }) }
+    }
+
+    fun moveExerciseInDraft(exerciseLogId: String, delta: Int) {
+        updateDraft { it.copy(exercises = movedExerciseLogs(it.exercises, exerciseLogId, delta)) }
     }
 
     fun finishWorkout() {

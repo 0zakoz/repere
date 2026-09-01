@@ -16,6 +16,10 @@ poids/nutrition, les tendances, les cinq thèmes et les mêmes formats d’expor
 JSON est conçue pour passer d’Android au Web et inversement. Il n’existe pas de synchronisation
 automatique entre les deux installations.
 
+La saisie de séance reprend également le sélecteur complet et recherchable de la Bibliothèque,
+le réordonnancement des exercices et la correction manuelle de la durée totale ou du repos de
+chaque série.
+
 ## Installation sur iPhone
 
 1. Ouvrir `https://0zakoz.github.io/repere/` dans Safari avec une connexion Internet.

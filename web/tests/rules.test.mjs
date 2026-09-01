@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createSeedState } from "../js/seed.js";
 import { normalizeState } from "../js/state.js";
-import { completeWorkout, isSetValid, lastPerformedExercise, missedSlotCount, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend } from "../js/rules.js";
+import { completeWorkout, isSetValid, lastPerformedExercise, missedSlotCount, moveWorkoutExercise, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend, workoutWithDuration, workoutWithSetRest } from "../js/rules.js";
 import { markdownExport, nutritionCsv, workoutCsv } from "../js/exporters.js";
 
 test("le seed correspond au programme Android", () => {
@@ -56,6 +56,28 @@ test("les créneaux manqués avancent le cycle sans créer de performance", () =
   assert.equal(state.programEvents.filter(event => event.outcome === "SKIPPED").length, 2);
   assert.equal(state.programs[0].nextIndex, 0);
   assert.equal(lastPerformedExercise(state, "chest_press"), null);
+});
+
+test("l'ordre et les durées d'une séance restent modifiables", () => {
+  let state = createSeedState();
+  ({state} = startWorkout(state,"session_a"));
+  let draft = state.workoutLogs.at(-1);
+  const firstId = draft.exercises[0].id;
+  const secondId = draft.exercises[1].id;
+  draft = moveWorkoutExercise(draft,secondId,-1);
+  assert.deepEqual(draft.exercises.slice(0,2).map(exercise=>exercise.id),[secondId,firstId]);
+
+  draft = workoutWithDuration(draft,3600,10_000_000);
+  assert.equal(draft.startedAt,6_400_000);
+  const set = draft.exercises[0].sets[0];
+  draft.exercises[0] = {...draft.exercises[0],restStartedAt:9_000_000,restTargetSetOrder:set.order};
+  draft = workoutWithSetRest(draft,draft.exercises[0].id,set.id,95);
+  assert.equal(draft.exercises[0].sets[0].restBeforeSeconds,95);
+  assert.equal(draft.exercises[0].restStartedAt,null);
+
+  const completedEdit = {...draft,editingCompletedLog:true,endedAt:draft.startedAt+1000};
+  const corrected = workoutWithDuration(completedEdit,1800,99_000_000);
+  assert.equal(corrected.endedAt,corrected.startedAt+1_800_000);
 });
 
 test("poids et nutrition sont agrégés par jour", () => {

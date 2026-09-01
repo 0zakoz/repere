@@ -27,6 +27,45 @@ export function lastPerformedExercise(state, exerciseId) {
     .find(item => item.exercise?.sets.some(set => set.completed && isSetValid(set))) ?? null;
 }
 
+export function moveWorkoutExercise(workout, exerciseLogId, delta) {
+  if (delta !== -1 && delta !== 1) throw new Error("Le déplacement doit être de −1 ou +1");
+  const from = workout.exercises.findIndex(exercise => exercise.id === exerciseLogId);
+  const to = from + delta;
+  if (from < 0 || to < 0 || to >= workout.exercises.length) return workout;
+  const exercises = workout.exercises.slice();
+  const [exercise] = exercises.splice(from, 1);
+  exercises.splice(to, 0, exercise);
+  return { ...workout, exercises };
+}
+
+export function workoutWithDuration(workout, durationSeconds, now = Date.now()) {
+  const seconds = Math.max(0, Math.min(24 * 60 * 60, Math.trunc(Number(durationSeconds) || 0)));
+  const durationMs = seconds * 1000;
+  return workout.editingCompletedLog && workout.endedAt != null
+    ? { ...workout, endedAt: workout.startedAt + durationMs }
+    : { ...workout, startedAt: now - durationMs };
+}
+
+export function workoutWithSetRest(workout, exerciseLogId, setId, restSeconds) {
+  const normalized = restSeconds == null
+    ? null
+    : Math.max(0, Math.min(24 * 60 * 60, Math.trunc(Number(restSeconds) || 0)));
+  return {
+    ...workout,
+    exercises: workout.exercises.map(exercise => {
+      if (exercise.id !== exerciseLogId) return exercise;
+      const target = exercise.sets.find(set => set.id === setId);
+      const stopsTimer = target && exercise.restTargetSetOrder === target.order;
+      return {
+        ...exercise,
+        sets: exercise.sets.map(set => set.id === setId ? { ...set, restBeforeSeconds: normalized } : set),
+        restStartedAt: stopsTimer ? null : exercise.restStartedAt,
+        restTargetSetOrder: stopsTimer ? null : exercise.restTargetSetOrder,
+      };
+    }),
+  };
+}
+
 export function activeProgram(state) {
   return state.programs.find(program => program.active && !program.archived) ?? null;
 }
@@ -124,7 +163,13 @@ export function completeWorkout(state, workoutId, endedAt = Date.now()) {
   if (!exercises.some(exercise => exercise.sets.some(set => set.completed && isSetValid(set)))) {
     throw new Error("Valide au moins une série avant de terminer");
   }
-  const completed = { ...workout, exercises, status: "COMPLETED", endedAt, editingCompletedLog: false };
+  const completed = {
+    ...workout,
+    exercises,
+    status: "COMPLETED",
+    endedAt: workout.editingCompletedLog ? (workout.endedAt ?? endedAt) : endedAt,
+    editingCompletedLog: false,
+  };
   let programs = state.programs;
   let events = state.programEvents;
   if (workout.advanceProgramOnFinish && workout.programId && workout.templateId) {

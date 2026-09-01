@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.suivimuscu.app.MainViewModel
+import fr.suivimuscu.app.MAX_EDITABLE_DURATION_SECONDS
 import fr.suivimuscu.app.adjustedReps
 import fr.suivimuscu.app.data.*
 import kotlinx.coroutines.delay
@@ -35,10 +37,18 @@ fun WorkoutScreen(
     var showPause by remember { mutableStateOf(false) }
     var showNote by remember { mutableStateOf(false) }
     var showDate by remember { mutableStateOf(false) }
+    var showDuration by remember { mutableStateOf(false) }
+    var exerciseQuery by remember { mutableStateOf("") }
     var elapsedNow by remember { mutableLongStateOf(System.currentTimeMillis()) }
     val activeRest = workout.exercises.firstOrNull { it.restStartedAt != null }
     LaunchedEffect(workout.exercises.map { it.restStartedAt }) {
         while (workout.exercises.any { it.restStartedAt != null }) {
+            elapsedNow = System.currentTimeMillis()
+            delay(1000)
+        }
+    }
+    LaunchedEffect(workout.startedAt, workout.endedAt) {
+        while (workout.endedAt == null) {
             elapsedNow = System.currentTimeMillis()
             delay(1000)
         }
@@ -121,8 +131,27 @@ fun WorkoutScreen(
                         )
                     }
                 }
-                items(workout.exercises, key = { it.id }) { exercise ->
-                    ExerciseLogCard(exercise, viewModel)
+                item {
+                    val durationSeconds = (((workout.endedAt ?: elapsedNow) - workout.startedAt) / 1000L)
+                        .coerceIn(0, MAX_EDITABLE_DURATION_SECONDS.toLong()).toInt()
+                    OutlinedButton(
+                        onClick = { showDuration = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Schedule, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Durée ${formatSessionDuration(durationSeconds)}")
+                        Spacer(Modifier.weight(1f))
+                        Icon(Icons.Default.Edit, "Modifier la durée")
+                    }
+                }
+                itemsIndexed(workout.exercises, key = { _, exercise -> exercise.id }) { index, exercise ->
+                    ExerciseLogCard(
+                        exercise = exercise,
+                        canMoveUp = index > 0,
+                        canMoveDown = index < workout.exercises.lastIndex,
+                        viewModel = viewModel,
+                    )
                 }
                 item { Spacer(Modifier.height(8.dp)) }
             }
@@ -139,11 +168,15 @@ fun WorkoutScreen(
 
     if (showAddExercise) {
         val already = workout.exercises.map { it.exerciseId }.toSet()
+        val available = state.exercises
+            .filter { !it.archived && it.id !in already }
+            .filter { it.name.contains(exerciseQuery.trim(), ignoreCase = true) }
+            .sortedBy { it.name.lowercase() }
         AlertDialog(
-            onDismissRequest = { showAddExercise = false },
+            onDismissRequest = { showAddExercise = false; exerciseQuery = "" },
             title = { Text("Ajouter un exercice") },
             text = {
-                Column {
+                Column(Modifier.heightIn(max = 520.dp)) {
                     OutlinedButton(
                         onClick = { showCreateExercise = true },
                         modifier = Modifier.fillMaxWidth(),
@@ -152,22 +185,42 @@ fun WorkoutScreen(
                         Text(" Créer un nouvel exercice")
                     }
                     HorizontalDivider(Modifier.padding(vertical = 6.dp))
-                    state.exercises.filter { !it.archived && it.id !in already }.forEach { exercise ->
-                        ListItem(
-                            headlineContent = { Text(exercise.name) },
-                            supportingContent = { Text("${exercise.defaultRepMin}–${exercise.defaultRepMax} reps") },
-                            modifier = Modifier.fillMaxWidth(),
-                            trailingContent = {
-                                IconButton(onClick = {
-                                    viewModel.addExerciseToDraft(exercise.id)
-                                    showAddExercise = false
-                                }) { Icon(Icons.Default.AddCircle, "Ajouter") }
-                            },
+                    OutlinedTextField(
+                        value = exerciseQuery,
+                        onValueChange = { exerciseQuery = it },
+                        label = { Text("Rechercher dans la bibliothèque") },
+                        leadingIcon = { Icon(Icons.Default.Search, null) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (available.isEmpty()) {
+                        Text(
+                            if (exerciseQuery.isBlank()) "Tous les exercices disponibles sont déjà dans la séance."
+                            else "Aucun exercice ne correspond à cette recherche.",
+                            modifier = Modifier.padding(vertical = 18.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                    } else {
+                        LazyColumn(Modifier.weight(1f, fill = false)) {
+                            items(available, key = { it.id }) { exercise ->
+                                ListItem(
+                                    headlineContent = { Text(exercise.name) },
+                                    supportingContent = { Text("${exercise.defaultRepMin}–${exercise.defaultRepMax} reps") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    trailingContent = {
+                                        IconButton(onClick = {
+                                            viewModel.addExerciseToDraft(exercise.id)
+                                            showAddExercise = false
+                                            exerciseQuery = ""
+                                        }) { Icon(Icons.Default.AddCircle, "Ajouter") }
+                                    },
+                                )
+                            }
+                        }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showAddExercise = false }) { Text("Fermer") } },
+            confirmButton = { TextButton(onClick = { showAddExercise = false; exerciseQuery = "" }) { Text("Fermer") } },
         )
     }
     if (showCreateExercise) {
@@ -248,6 +301,20 @@ fun WorkoutScreen(
             dismissButton = { TextButton(onClick = { showNote = false }) { Text("Annuler") } },
         )
     }
+    if (showDuration) {
+        val durationSeconds = (((workout.endedAt ?: elapsedNow) - workout.startedAt) / 1000L)
+            .coerceIn(0, MAX_EDITABLE_DURATION_SECONDS.toLong()).toInt()
+        DurationEditDialog(
+            title = "Durée de la séance",
+            initialSeconds = durationSeconds,
+            allowClear = false,
+            onDismiss = { showDuration = false },
+            onSave = { seconds ->
+                viewModel.updateWorkoutDuration(seconds ?: 0, elapsedNow)
+                showDuration = false
+            },
+        )
+    }
 }
 
 @Composable
@@ -287,7 +354,12 @@ private fun RestTimerBar(
 }
 
 @Composable
-private fun ExerciseLogCard(exercise: LoggedExercise, viewModel: MainViewModel) {
+private fun ExerciseLogCard(
+    exercise: LoggedExercise,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    viewModel: MainViewModel,
+) {
     var confirmRemove by remember { mutableStateOf(false) }
     ElevatedCard(
         colors = CardDefaults.elevatedCardColors(
@@ -304,6 +376,14 @@ private fun ExerciseLogCard(exercise: LoggedExercise, viewModel: MainViewModel) 
                         Text(exercise.instructionSnapshot, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
+                IconButton(
+                    enabled = canMoveUp,
+                    onClick = { viewModel.moveExerciseInDraft(exercise.id, -1) },
+                ) { Icon(Icons.Default.ArrowUpward, "Monter l’exercice") }
+                IconButton(
+                    enabled = canMoveDown,
+                    onClick = { viewModel.moveExerciseInDraft(exercise.id, 1) },
+                ) { Icon(Icons.Default.ArrowDownward, "Descendre l’exercice") }
                 IconButton(onClick = { confirmRemove = true }) {
                     Icon(Icons.Default.DeleteOutline, "Retirer", tint = MaterialTheme.colorScheme.error)
                 }
@@ -336,6 +416,7 @@ private fun ExerciseLogCard(exercise: LoggedExercise, viewModel: MainViewModel) 
 @Composable
 private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainViewModel) {
     val focusManager = LocalFocusManager.current
+    var showRestEdit by remember { mutableStateOf(false) }
     val valid = set.reps.toIntOrNull()?.let { it > 0 } == true &&
         set.weightKg.replace(',', '.').toDoubleOrNull()?.let { it >= 0 } == true
     val repsNumber = set.reps.toIntOrNull()
@@ -422,8 +503,10 @@ private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainVie
                     },
                 ) { Text("+1 rep") }
                 Spacer(Modifier.weight(1f))
-                set.restBeforeSeconds?.let {
-                    Text("repos ${formatSeconds(it)}", style = MaterialTheme.typography.bodySmall, color = appVisuals.info)
+                TextButton(onClick = { showRestEdit = true }) {
+                    Icon(Icons.Default.Timer, null)
+                    Spacer(Modifier.width(4.dp))
+                    Text(set.restBeforeSeconds?.let { "Repos ${formatSeconds(it)}" } ?: "Repos —")
                 }
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -446,6 +529,76 @@ private fun SetRow(exercise: LoggedExercise, set: WorkoutSet, viewModel: MainVie
             }
         }
     }
+    if (showRestEdit) {
+        DurationEditDialog(
+            title = "Repos avant la série ${set.order}",
+            initialSeconds = set.restBeforeSeconds ?: 0,
+            allowClear = true,
+            onDismiss = { showRestEdit = false },
+            onSave = { seconds ->
+                viewModel.updateSetRest(exercise.id, set.id, seconds)
+                showRestEdit = false
+            },
+        )
+    }
 }
 
 private fun formatSeconds(seconds: Int): String = "%d:%02d".format(seconds / 60, seconds % 60)
+
+private fun formatSessionDuration(seconds: Int): String = "%d:%02d:%02d".format(
+    seconds / 3600,
+    (seconds % 3600) / 60,
+    seconds % 60,
+)
+
+@Composable
+private fun DurationEditDialog(
+    title: String,
+    initialSeconds: Int,
+    allowClear: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (Int?) -> Unit,
+) {
+    var hours by remember(initialSeconds) { mutableStateOf((initialSeconds / 3600).toString()) }
+    var minutes by remember(initialSeconds) { mutableStateOf(((initialSeconds % 3600) / 60).toString()) }
+    var seconds by remember(initialSeconds) { mutableStateOf((initialSeconds % 60).toString()) }
+    val total = (hours.toIntOrNull() ?: -1) * 3600 +
+        (minutes.toIntOrNull() ?: -1) * 60 + (seconds.toIntOrNull() ?: -1)
+    val valid = hours.toIntOrNull()?.let { it in 0..24 } == true &&
+        minutes.toIntOrNull()?.let { it in 0..59 } == true &&
+        seconds.toIntOrNull()?.let { it in 0..59 } == true &&
+        total in 0..MAX_EDITABLE_DURATION_SECONDS
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("h" to hours, "min" to minutes, "s" to seconds).forEach { (label, value) ->
+                    OutlinedTextField(
+                        value = value,
+                        onValueChange = { next ->
+                            if (next.matches(Regex("""\d{0,2}"""))) when (label) {
+                                "h" -> hours = next
+                                "min" -> minutes = next
+                                else -> seconds = next
+                            }
+                        },
+                        label = { Text(label) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = valid, onClick = { onSave(total) }) { Text("Enregistrer") }
+        },
+        dismissButton = {
+            Row {
+                if (allowClear) TextButton(onClick = { onSave(null) }) { Text("Effacer") }
+                TextButton(onClick = onDismiss) { Text("Annuler") }
+            }
+        },
+    )
+}

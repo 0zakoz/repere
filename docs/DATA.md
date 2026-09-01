@@ -46,6 +46,11 @@ l’identifiant stable de l’exercice ainsi que des snapshots de son nom, sa co
 reps et ses muscles. Chaque `WorkoutSet` stocke charge et répétitions sous forme de chaînes,
 RIR, repos et état de validation.
 
+La durée de séance reste dérivée de `startedAt` et `endedAt` : sa correction ajuste le début
+d’un brouillon actif ou la fin d’une séance historique en cours d’édition. Le repos corrigé
+reste stocké dans `WorkoutSet.restBeforeSeconds`. Aucune donnée parallèle ni migration n’est
+nécessaire, et les valeurs corrigées alimentent immédiatement tendances et exports.
+
 Les chaînes de charge permettent une saisie française à virgule sans perte de l’entrée. Les
 calculs et exports la normalisent au besoin avec un point décimal.
 
