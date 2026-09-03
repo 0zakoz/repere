@@ -24,6 +24,7 @@
 .mascot svg{width:1.25em;height:1.25em;vertical-align:-.2em}
 .field{min-width:0}
 .field input,.field textarea,.field select{max-width:100%;min-width:0}
+input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%}
 .list-item{min-width:0}
 .list-item .grow{overflow-wrap:anywhere}
 @media(min-width:700px){.dialog-backdrop{align-items:center}.screen{padding-top:30px}.nav{left:50%;right:auto;width:650px;transform:translateX(-50%);border-radius:28px 28px 0 0;border-left:1px solid var(--outline);border-right:1px solid var(--outline)}}
