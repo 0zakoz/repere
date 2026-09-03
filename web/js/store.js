@@ -56,10 +56,10 @@ export function loadAppearance() {
     const themes = ["original", "kawaii", "pastel", "oled", "clean"];
     const modes = ["light", "dark", "system"];
     return {
-      theme: themes.includes(parsed?.theme) ? parsed.theme : "original",
+      theme: themes.includes(parsed?.theme) ? parsed.theme : "kawaii",
       mode: modes.includes(parsed?.mode) ? parsed.mode : "dark",
     };
-  } catch { return { theme: "original", mode: "dark" }; }
+  } catch { return { theme: "kawaii", mode: "dark" }; }
 }
 
 export function saveAppearance(value) {

@@ -40,6 +40,12 @@ est récupérée par le service worker ; elle peut demander une fermeture/réouv
 - Créer régulièrement une sauvegarde JSON dans Fichiers ou iCloud reste indispensable.
 - La restauration remplace toute la base locale après confirmation ; les thèmes restent
   propres à l’appareil.
+- Le thème par défaut sur le Web est **Kawaii** (sombre) ; un choix explicite reste conservé
+  dans `localStorage` et n’est jamais écrasé par une mise à jour.
+- Sur iPhone, les exports CSV/Markdown et la sauvegarde JSON passent par la feuille de
+  partage du système quand le téléchargement direct est indisponible en PWA autonome.
+- Toute erreur JavaScript non gérée affiche un bandeau rouge persistant en haut de l’écran
+  (fermable) afin de permettre un diagnostic depuis le seul téléphone.
 
 ## Architecture du dossier
 
