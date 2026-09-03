@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createSeedState } from "../js/seed.js";
 import { normalizeState } from "../js/state.js";
-import { completeWorkout, isSetValid, lastPerformedExercise, missedSlotCount, moveWorkoutExercise, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend, workoutWithDuration, workoutWithSetRest } from "../js/rules.js";
+import { completeWorkout, isSetValid, lastPerformedExercise, missedSlotCount, moveWorkoutExercise, normalizeTargetCalories, normalizeTargetProtein, nutritionRemaining, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend, workoutWithDuration, workoutWithSetRest } from "../js/rules.js";
 import { markdownExport, nutritionCsv, workoutCsv } from "../js/exporters.js";
 
 test("le seed correspond au programme Android", () => {
@@ -90,6 +90,25 @@ test("poids et nutrition sont agrégés par jour", () => {
   const total = nutritionTrend(state.nutritionEntries,null,"2020-08-31")[0];
   assert.deepEqual([total.caloriesKcal,total.proteinGrams,total.entryCount],[1050,60.5,2]);
   assert.match(nutritionCsv(state),/650,42.5,1050,60.5/);
+});
+
+test("les objectifs nutritionnels comparent la journée aux cibles", () => {
+  assert.equal(normalizeTargetCalories(""), null);
+  assert.equal(normalizeTargetCalories("2200"), 2200);
+  assert.throws(() => normalizeTargetCalories("12,5"), /Objectif calories invalide/);
+  assert.throws(() => normalizeTargetCalories("0"), /Objectif calories invalide/);
+  assert.equal(normalizeTargetProtein(""), null);
+  assert.equal(normalizeTargetProtein("42,5"), 42.5);
+  assert.throws(() => normalizeTargetProtein("abc"), /Objectif protéines invalide/);
+  let state = createSeedState();
+  state = saveNutrition(state, { date: "2020-08-31", calories: "650", protein: "42,5" });
+  state = saveNutrition(state, { date: "2020-08-31", calories: "400", protein: "18" });
+  const full = nutritionRemaining(state.nutritionEntries, "2020-08-31", { caloriesKcal: 2200, proteinGrams: 140 });
+  assert.deepEqual([full.caloriesIn, full.proteinIn, full.caloriesLeft, full.proteinLeft], [1050, 60.5, 1150, 79.5]);
+  const exceeded = nutritionRemaining(state.nutritionEntries, "2020-08-31", { caloriesKcal: 500, proteinGrams: 30 });
+  assert.deepEqual([exceeded.caloriesLeft, exceeded.proteinLeft], [-550, -30.5]);
+  const none = nutritionRemaining(state.nutritionEntries, "2020-08-31", { caloriesKcal: null, proteinGrams: null });
+  assert.deepEqual([none.caloriesLeft, none.proteinLeft], [null, null]);
 });
 
 test("les exports excluent les séries non réalisées et documentent la nutrition", () => {

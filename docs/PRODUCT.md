@@ -81,6 +81,11 @@ définis dans `SeedData.kt` ; ils restent entièrement modifiables depuis la Bib
 - Une journée peut contenir autant d’entrées que nécessaire. Chaque entrée conserve son heure,
   ses calories et ses grammes de protéines ; elle peut être modifiée ou supprimée séparément.
 - L’en-tête additionne immédiatement toutes les entrées de la date sélectionnée.
+- Des objectifs caloriques et protéiques peuvent être saisis une seule fois (Web uniquement) :
+  l’en-tête affiche alors les calories restantes et les protéines manquantes du jour, avec
+  mention explicite du dépassement ou de l’atteinte. Laisser un objectif vide le retire.
+  Ces objectifs sont propres à l’appareil (comme le thème) : ils ne font pas partie de la
+  sauvegarde JSON et ne sont ni restaurés ni exportés.
 - Deux courbes séparées affichent les totaux quotidiens de calories et de protéines sur 4, 12,
   52 semaines ou tout l’historique. Les jours sans saisie restent simplement absents.
 - L’historique brut peut être exporté en CSV ; la sauvegarde JSON et l’export Markdown complet

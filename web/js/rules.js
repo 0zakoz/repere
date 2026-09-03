@@ -330,3 +330,28 @@ export function formatDuration(seconds) {
   const hours = Math.floor(minutes / 60);
   return hours ? `${hours} h ${String(minutes % 60).padStart(2, "0")}` : `${minutes} min`;
 }
+
+export function normalizeTargetCalories(value) {
+  if (value == null || String(value).trim() === "") return null;
+  const calories = Number(String(value).trim());
+  if (!Number.isInteger(calories) || calories <= 0 || calories > 100000) throw new Error("Objectif calories invalide");
+  return calories;
+}
+
+export function normalizeTargetProtein(value) {
+  if (value == null || String(value).trim() === "") return null;
+  const protein = Number(String(value).trim().replace(",", "."));
+  if (!Number.isFinite(protein) || protein < 0 || protein > 10000) throw new Error("Objectif protéines invalide");
+  return Math.round(protein * 10) / 10;
+}
+
+export function nutritionRemaining(entries, date, targets) {
+  const day = entries.filter(item => item.date === date);
+  const caloriesIn = day.reduce((sum, item) => sum + item.caloriesKcal, 0);
+  const proteinIn = Math.round(day.reduce((sum, item) => sum + item.proteinGrams, 0) * 10) / 10;
+  return {
+    caloriesIn, proteinIn,
+    caloriesLeft: targets?.caloriesKcal == null ? null : targets.caloriesKcal - caloriesIn,
+    proteinLeft: targets?.proteinGrams == null ? null : Math.round((targets.proteinGrams - proteinIn) * 10) / 10,
+  };
+}

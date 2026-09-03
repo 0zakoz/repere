@@ -65,3 +65,26 @@ export function loadAppearance() {
 export function saveAppearance(value) {
   localStorage.setItem("repere-appearance", JSON.stringify(value));
 }
+
+const TARGETS_KEY = "repere-nutrition-targets";
+
+export function loadNutritionTargets() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(TARGETS_KEY));
+    const calories = Number(parsed?.caloriesKcal);
+    const protein = Number(parsed?.proteinGrams);
+    return {
+      caloriesKcal: Number.isInteger(calories) && calories > 0 && calories <= 100000 ? calories : null,
+      proteinGrams: Number.isFinite(protein) && protein >= 0 && protein <= 10000 ? Math.round(protein * 10) / 10 : null,
+    };
+  } catch { return { caloriesKcal: null, proteinGrams: null }; }
+}
+
+export function saveNutritionTargets(value) {
+  const next = {
+    caloriesKcal: value?.caloriesKcal ?? null,
+    proteinGrams: value?.proteinGrams ?? null,
+  };
+  localStorage.setItem(TARGETS_KEY, JSON.stringify(next));
+  return next;
+}

@@ -101,7 +101,9 @@ d’aller-retour du schéma courant.
 
 La version Web importe et exporte ce même objet JSON. C’est le mécanisme de transfert prévu
 entre Android et iPhone ; il remplace intégralement l’état du client cible et ne fusionne pas
-deux historiques. Toute évolution du format doit être implémentée et testée dans
+deux historiques. Les préférences propres à l’appareil (thème et objectifs nutritionnels Web,
+stockés en `localStorage`) ne font pas partie de la sauvegarde et ne traversent donc pas les
+appareils. Toute évolution du format doit être implémentée et testée dans
 `StateMigrations.kt` et `web/js/state.js` avant livraison.
 
 Sur iPhone, IndexedDB reste lié au site `https://0zakoz.github.io/repere/`. Effacer les données
