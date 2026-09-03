@@ -1,4 +1,4 @@
-const CACHE = "repere-web-v1.9.4";
+const CACHE = "repere-web-v1.9.5";
 const BASE = new URL("./", self.location).pathname;
 const ASSETS = [
   "./", "./index.html", "./styles.css", "./manifest.webmanifest", "./assets/icon.svg",

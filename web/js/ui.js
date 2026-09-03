@@ -5,7 +5,7 @@ export function html(value) {
 export function icon(name) {
   const paths = {
     settings: "⚙", play: "▶", add: "+", edit: "✎", delete: "⌫", download: "⇩", back: "‹",
-    close: "×", check: "✓", pause: "Ⅱ", timer: "◷", calendar: "▣", more: "•••", upload: "⇧",
+    close: "×", check: "✓", pause: "Ⅱ", timer: "◷", calendar: "▣", more: "•••", upload: "⇧", remove: "⊖",
   };
   return `<span class="icon" aria-hidden="true">${paths[name] ?? name}</span>`;
 }

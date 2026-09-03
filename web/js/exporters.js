@@ -40,7 +40,7 @@ export function nutritionCsv(state) {
   return `\ufeff${rows.join("\n")}\n`;
 }
 
-export function markdownExport(state, version = "Web 1.9.4") {
+export function markdownExport(state, version = "Web 1.9.5") {
   const drafts = state.workoutLogs.filter(log => log.status === "DRAFT" && log.deletedAt == null);
   const weightsTrend = weightTrend(state.bodyWeights, null);
   const nutritionTotals = nutritionTrend(state.nutritionEntries, null);
