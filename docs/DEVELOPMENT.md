@@ -127,7 +127,9 @@ jamais utiliser une sauvegarde réelle, même temporairement : supprimer le fich
 commit ne l’efface pas de l’historique Git.
 
 Pour une modification Web, ajouter aux étapes 4 à 6 les tests Node, une vérification à largeur
-iPhone et, si le cache change, une nouvelle clé dans `sw.js`. Ne jamais tester la restauration
+iPhone et une nouvelle clé de cache dans `sw.js` à chaque livraison : le service worker ne
+met à jour les fichiers statiques (dont `js/app.js`) que si `sw.js` lui-même change, sinon
+les appareils conservent indéfiniment l’ancienne version en cache. Ne jamais tester la restauration
 avec les seules données réelles d’un utilisateur : employer une sauvegarde de test.
 
 ## Publication Web
