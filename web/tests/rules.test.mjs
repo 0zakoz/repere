@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createSeedState } from "../js/seed.js";
 import { normalizeState } from "../js/state.js";
-import { completeWorkout, isSetValid, lastPerformedExercise, missedSlotCount, moveWorkoutExercise, normalizeTargetCalories, normalizeTargetProtein, nutritionRemaining, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend, workoutWithDuration, workoutWithSetRest } from "../js/rules.js";
+import { backupSummary, completeWorkout, isSetValid, lastPerformedExercise, missedSlotCount, moveWorkoutExercise, normalizeTargetCalories, normalizeTargetProtein, nutritionRemaining, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend, workoutWithDuration, workoutWithSetRest } from "../js/rules.js";
 import { markdownExport, nutritionCsv, workoutCsv } from "../js/exporters.js";
 
 test("le seed correspond au programme Android", () => {
@@ -109,6 +109,16 @@ test("les objectifs nutritionnels comparent la journée aux cibles", () => {
   assert.deepEqual([exceeded.caloriesLeft, exceeded.proteinLeft], [-550, -30.5]);
   const none = nutritionRemaining(state.nutritionEntries, "2020-08-31", { caloriesKcal: null, proteinGrams: null });
   assert.deepEqual([none.caloriesLeft, none.proteinLeft], [null, null]);
+});
+
+test("le résumé de sauvegarde compte séances, pesées et apports", () => {
+  let state = createSeedState();
+  assert.deepEqual(backupSummary(state), { workouts: 0, weights: 0, nutrition: 0 });
+  state = saveWeight(state, "2020-08-29", "80,2");
+  state = saveNutrition(state, { date: "2020-08-31", calories: "650", protein: "42,5" });
+  const log = { id: "w1", templateId: "session_a", templateNameSnapshot: "A", localDate: "2020-08-30", startedAt: 1, endedAt: 2, status: "COMPLETED", deletedAt: null, exercises: [] };
+  state = { ...state, workoutLogs: [log, { ...log, id: "w2", status: "DRAFT" }, { ...log, id: "w3", deletedAt: 5 }] };
+  assert.deepEqual(backupSummary(state), { workouts: 1, weights: 1, nutrition: 1 });
 });
 
 test("les exports excluent les séries non réalisées et documentent la nutrition", () => {

@@ -41,6 +41,11 @@ test("l'icône est un lapin blanc sur fond rose aux bonnes tailles", async () =>
   }
 });
 
+test("la restauration accepte aussi les .txt (partage iOS)", async () => {
+  const app = await readFile(new URL("../js/app.js", import.meta.url), "utf8");
+  assert.match(app, /id="restore-file"[^>]*\.txt/);
+});
+
 test("toutes les icônes du manifeste existent avec une 512 any", async () => {
   const root = new URL("../", import.meta.url);
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));

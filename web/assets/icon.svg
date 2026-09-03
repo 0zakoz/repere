@@ -12,5 +12,5 @@
   <circle cx="216" cy="321" r="6" fill="#ffffff"/>
   <circle cx="308" cy="321" r="6" fill="#ffffff"/>
   <ellipse cx="256" cy="366" rx="12" ry="9" fill="#f278a8"/>
-  <path d="M256 375 v8 m0 0 c0 9 -12 13 -21 8 m21 1 c0 9 12 13 21 8" fill="none" stroke="#422333" stroke-width="7" stroke-linecap="round"/>
+  <path d="M256 375 v8 c0 9 -12 13 -21 8 m21 -8 c0 9 12 13 21 8" fill="none" stroke="#422333" stroke-width="7" stroke-linecap="round"/>
 </svg>

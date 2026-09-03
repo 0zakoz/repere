@@ -355,3 +355,11 @@ export function nutritionRemaining(entries, date, targets) {
     proteinLeft: targets?.proteinGrams == null ? null : Math.round((targets.proteinGrams - proteinIn) * 10) / 10,
   };
 }
+
+export function backupSummary(state) {
+  return {
+    workouts: completedLogs(state).length,
+    weights: state.bodyWeights.length,
+    nutrition: state.nutritionEntries.length,
+  };
+}

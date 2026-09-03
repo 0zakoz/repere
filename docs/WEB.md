@@ -39,7 +39,8 @@ est récupérée par le service worker ; elle peut demander une fermeture/réouv
   données locales.
 - Créer régulièrement une sauvegarde JSON dans Fichiers ou iCloud reste indispensable.
 - La restauration remplace toute la base locale après confirmation ; les thèmes restent
-  propres à l’appareil.
+  propres à l’appareil. Avant remplacement, elle affiche le contenu de la sauvegarde
+  (séances terminées, pesées, apports) et avertit si elle semble vide.
 - Le thème par défaut sur le Web est **Kawaii** (sombre) ; un choix explicite reste conservé
   dans `localStorage` et n’est jamais écrasé par une mise à jour.
 - Sur iPhone, les exports CSV/Markdown et la sauvegarde JSON passent par la feuille de
