@@ -157,6 +157,9 @@ fun MuscleFigure(
         return heatmapFraction(value, maxSets)
     }
     val visuals = appVisuals
+    val baseFill = MaterialTheme.colorScheme.surfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val selectionColor = visuals.success
 
     Card(modifier = modifier) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -186,9 +189,6 @@ fun MuscleFigure(
                         )
                     }
                 }
-                val baseFill = MaterialTheme.colorScheme.surfaceVariant
-                val outlineColor = MaterialTheme.colorScheme.outline
-                val selectionColor = visuals.success
                 Canvas(
                     Modifier
                         .fillMaxSize()
@@ -221,7 +221,15 @@ fun MuscleFigure(
                                     drawPath(path, outlineColor, style = Stroke(lineWidth))
                                 }
                                 figure.regions.forEach { (id, path) ->
-                                    drawPath(path, heatmapColor(fractionOf(id).toDouble(), visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh))
+                                    val fraction = fractionOf(id)
+                                    drawPath(
+                                        path,
+                                        figureRegionColor(
+                                            baseFill,
+                                            heatmapColor(fraction.toDouble(), visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh),
+                                            fraction,
+                                        ),
+                                    )
                                     drawPath(path, outlineColor, style = Stroke(lineWidth))
                                 }
                                 figure.lines.forEach { path -> drawPath(path, outlineColor, style = Stroke(lineWidth)) }
@@ -253,9 +261,9 @@ fun MuscleFigure(
                         .background(
                             Brush.horizontalGradient(
                                 listOf(
-                                    heatmapColor(0.0, visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh),
-                                    heatmapColor(0.5, visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh),
-                                    heatmapColor(1.0, visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh),
+                                    figureRegionColor(baseFill, heatmapColor(0.0, visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh), 0f),
+                                    figureRegionColor(baseFill, heatmapColor(0.5, visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh), 0.5f),
+                                    figureRegionColor(baseFill, heatmapColor(1.0, visuals.heatmapLow, visuals.heatmapMid, visuals.heatmapHigh), 1f),
                                 ),
                             ),
                             RoundedCornerShape(4.dp),

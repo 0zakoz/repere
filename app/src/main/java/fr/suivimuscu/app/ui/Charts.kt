@@ -73,6 +73,10 @@ internal fun heatmapColor(
 internal fun heatmapFraction(value: Double, maxValue: Double): Float =
     if (value <= 0.0 || maxValue <= 0.0) 0f else (value / maxValue).coerceIn(0.0, 1.0).toFloat()
 
+/** Remplissage d’une zone de la carte : fond neutre à 0, pleine couleur heatmap à 1. */
+internal fun figureRegionColor(base: Color, heat: Color, fraction: Float): Color =
+    lerp(base, heat, fraction.coerceIn(0f, 1f))
+
 @Composable
 fun ExerciseCharts(points: List<ExerciseHistoryPoint>, modifier: Modifier = Modifier) {
     if (points.isEmpty()) {

@@ -62,7 +62,7 @@ export function heatFraction(value, max) {
   return Math.min(1, value / max);
 }
 
-const heatFill = fraction => `color-mix(in srgb, var(--primary) ${Math.round(6 + 82 * fraction)}%, var(--surface-2))`;
+export const heatFill = fraction => `color-mix(in srgb, var(--primary) ${Math.round(100 * Math.min(1, Math.max(0, fraction)))}%, var(--surface-2))`;
 
 function figureSvg(uid, regions, lines, fills) {
   const half = shapes => `<g>${shapes}</g><g transform="scale(-1,1)">${shapes}</g>`;

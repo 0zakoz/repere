@@ -1,5 +1,6 @@
 package fr.suivimuscu.app.ui
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -42,5 +43,20 @@ class ChartsTest {
         assertEquals(0f, heatmapFraction(5.0, 0.0), 0.001f)
         assertEquals(0.25f, heatmapFraction(2.5, 10.0), 0.001f)
         assertEquals(1f, heatmapFraction(15.0, 10.0), 0.001f)
+    }
+
+    @Test
+    fun figureRegionColorSpansBaseToHeat() {
+        val base = Color(0xFF222222)
+        val heat = Color(0xFFEEEEEE)
+
+        assertEquals(base, figureRegionColor(base, heat, 0f))
+        assertEquals(heat, figureRegionColor(base, heat, 1f))
+        assertEquals(base, figureRegionColor(base, heat, -0.5f))
+        assertEquals(heat, figureRegionColor(base, heat, 2f))
+
+        val mid = figureRegionColor(base, heat, 0.5f)
+        assertTrue(mid.luminance() > base.luminance())
+        assertTrue(heat.luminance() > mid.luminance())
     }
 }
