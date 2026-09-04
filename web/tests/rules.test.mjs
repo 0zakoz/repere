@@ -160,4 +160,11 @@ test("les exports excluent les séries non réalisées et documentent la nutriti
   const withGoals = markdownExport({ ...state, nutritionTargets: { caloriesKcal: 2200, proteinGrams: 140 }, weightGoalKg: 75.5 });
   assert.match(withGoals,/Objectifs nutritionnels.*2200 kcal \/ 140\.0 g/);
   assert.match(withGoals,/Poids objectif.*75\.5 kg/);
+  const weighed = saveWeight({ ...state, nutritionTargets: { caloriesKcal: 2200, proteinGrams: 140 }, weightGoalKg: 75.5 }, "2020-08-31", "80,2");
+  const weighedMd = markdownExport(weighed);
+  assert.match(weighedMd,/Reste kcal/);
+  assert.match(weighedMd,/\+1700 kcal/);
+  assert.match(weighedMd,/\+110\.0 g/);
+  assert.match(weighedMd,/Écart objectif/);
+  assert.match(weighedMd,/\+4\.7 kg/);
 });

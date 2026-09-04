@@ -1,6 +1,7 @@
 package fr.suivimuscu.app.data
 
 import fr.suivimuscu.app.calculateBodyWeightTrend
+import fr.suivimuscu.app.calculateNutritionRemaining
 import fr.suivimuscu.app.calculateNutritionTrend
 import fr.suivimuscu.app.isSetInputValid
 import fr.suivimuscu.app.lastPerformedExercise
@@ -358,12 +359,13 @@ object CompleteMarkdownExporter {
         val today = generatedAt.atZone(zoneId).toLocalDate()
         val averages = calculateBodyWeightTrend(state.bodyWeights, weeks = null, today = today, zone = zoneId)
             .associateBy { it.date }
-        appendLine("| Date | Poids | Moyenne 7 jours | Créée le | Modifiée le | Identifiant |")
-        appendLine("|---|---:|---:|---|---|---|")
+        appendLine("| Date | Poids | Moyenne 7 jours | Écart objectif | Créée le | Modifiée le | Identifiant |")
+        appendLine("|---|---:|---:|---:|---|---|---|")
         state.bodyWeights.sortedWith(compareBy<BodyWeightEntry> { it.date }.thenBy { it.updatedAt }).forEach { entry ->
             appendLine(
                 "| ${table(entry.date)} | ${formatNumber(entry.weightKg)} kg | " +
                     "${averages[entry.date]?.let { "${formatNumber(it.average7DaysKg)} kg" } ?: "—"} | " +
+                    "${state.weightGoalKg?.let { "${formatSignedGap(entry.weightKg - it)} kg" } ?: "—"} | " +
                     "${table(formatEpoch(entry.createdAt, zoneId))} | ${table(formatEpoch(entry.updatedAt, zoneId))} | " +
                     "${table(code(entry.id))} |",
             )
@@ -376,7 +378,8 @@ object CompleteMarkdownExporter {
         appendLine()
         appendLine(
             "Chaque ligne représente un apport saisi au fil de la journée. Les totaux journaliers " +
-                "additionnent toutes les entrées de la même date.",
+                "additionnent toutes les entrées de la même date. Les colonnes de reste comparent " +
+                "ces totaux aux objectifs du jour.",
         )
         appendLine()
         if (state.nutritionEntries.isEmpty()) {
@@ -387,17 +390,23 @@ object CompleteMarkdownExporter {
         val today = generatedAt.atZone(zoneId).toLocalDate()
         val totals = calculateNutritionTrend(state.nutritionEntries, weeks = null, today = today, zone = zoneId)
             .associateBy { it.date }
-        appendLine("| Date | Heure de saisie | Calories | Protéines | Total quotidien | Total protéines | Créée le | Modifiée le | Identifiant |")
-        appendLine("|---|---|---:|---:|---:|---:|---|---|---|")
+        val remainingByDate = totals.keys.associateWith { date ->
+            calculateNutritionRemaining(state.nutritionEntries, date, state.nutritionTargets)
+        }
+        appendLine("| Date | Heure de saisie | Calories | Protéines | Total quotidien | Total protéines | Reste kcal | Reste protéines | Créée le | Modifiée le | Identifiant |")
+        appendLine("|---|---|---:|---:|---:|---:|---:|---:|---|---|---|")
         state.nutritionEntries
             .sortedWith(compareBy<NutritionEntry> { it.date }.thenBy { it.createdAt })
             .forEach { entry ->
                 val total = totals[entry.date]
+                val remaining = remainingByDate[entry.date]
                 appendLine(
                     "| ${table(entry.date)} | ${table(formatEpoch(entry.createdAt, zoneId).substringAfter(' '))} | " +
                         "${entry.caloriesKcal} kcal | ${formatNumber(entry.proteinGrams)} g | " +
                         "${total?.caloriesKcal ?: entry.caloriesKcal} kcal | " +
                         "${formatNumber(total?.proteinGrams ?: entry.proteinGrams)} g | " +
+                        "${remaining?.caloriesLeft?.let { "${formatSignedInt(it)} kcal" } ?: "—"} | " +
+                        "${remaining?.proteinLeft?.let { "${formatSignedGap(it)} g" } ?: "—"} | " +
                         "${table(formatEpoch(entry.createdAt, zoneId))} | ${table(formatEpoch(entry.updatedAt, zoneId))} | " +
                         "${table(code(entry.id))} |",
                 )
@@ -458,6 +467,10 @@ object CompleteMarkdownExporter {
     }
 
     private fun formatNumber(value: Double): String = String.format(Locale.FRANCE, "%.1f", value)
+
+    private fun formatSignedInt(value: Int): String = String.format(Locale.FRANCE, "%+d", value)
+
+    private fun formatSignedGap(value: Double): String = String.format(Locale.FRANCE, "%+.1f", value)
 
     private fun formatInstant(value: Instant, zoneId: ZoneId): String =
         DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(value.atZone(zoneId))

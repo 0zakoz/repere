@@ -31,8 +31,8 @@ alors la documentation dans la même modification.
 - branche principale : `main` ;
 - libellé Android actuel : **Suivi Muscu** ;
 - package et `applicationId` : `fr.suivimuscu.app` ;
-- version : **1.10.0**, `versionCode 14` ;
-- PWA publiée : `https://0zakoz.github.io/repere/`, version **1.11.0** ;
+- version : **1.10.1**, `versionCode 15` ;
+- PWA publiée : `https://0zakoz.github.io/repere/`, version **1.11.1** ;
 - date de cet état des lieux : 1er septembre 2026.
 
 Le nom du dépôt et le libellé visible de l’application sont volontairement documentés comme

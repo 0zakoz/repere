@@ -1,4 +1,4 @@
-import { chronology, completedLogs, isSetValid, lastPerformedExercise, nutritionTrend, weightTrend } from "./rules.js";
+import { chronology, completedLogs, isSetValid, lastPerformedExercise, nutritionRemaining, nutritionTrend, weightTrend } from "./rules.js";
 
 const csvCell = value => {
   const raw = String(value ?? "");
@@ -40,7 +40,7 @@ export function nutritionCsv(state) {
   return `\ufeff${rows.join("\n")}\n`;
 }
 
-export function markdownExport(state, version = "Web 1.11.0") {
+export function markdownExport(state, version = "Web 1.11.1") {
   const drafts = state.workoutLogs.filter(log => log.status === "DRAFT" && log.deletedAt == null);
   const weightsTrend = weightTrend(state.bodyWeights, null);
   const nutritionTotals = nutritionTrend(state.nutritionEntries, null);
@@ -79,17 +79,20 @@ export function markdownExport(state, version = "Web 1.11.0") {
   });
   lines.push("## Événements de programme", "");
   if(!state.programEvents.length)lines.push("Aucun événement.",""); else state.programEvents.slice().sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id)).forEach((event,index)=>lines.push(`### ${index+1}. ${event.date} — ${event.outcome==="COMPLETED"?"Séance terminée":event.outcome==="SKIPPED"?"Créneau sauté":md(event.outcome)}`,"",`- **Identifiant** : \`${event.id}\``,`- **Programme** : ${md(state.programs.find(p=>p.id===event.programId)?.name??"Introuvable")} (\`${event.programId}\`)`,`- **Séance** : ${md(state.templates.find(t=>t.id===event.templateId)?.name??"Introuvable")} (\`${event.templateId}\`)`,`- **Résultat brut** : ${md(event.outcome)}`,`- **Log de séance lié** : ${event.workoutLogId?`\`${event.workoutLogId}\``:"—"}`,""));
-  lines.push("## Suivi du poids", "", "| Date | Poids | Moyenne 7 jours | Créée le | Modifiée le | Identifiant |", "|---|---:|---:|---|---|---|");
+  lines.push("## Suivi du poids", "", "| Date | Poids | Moyenne 7 jours | Écart objectif | Créée le | Modifiée le | Identifiant |", "|---|---:|---:|---:|---|---|---|");
   const weights = new Map(weightsTrend.map(item => [item.date, item]));
-  state.bodyWeights.slice().sort((a,b)=>a.date.localeCompare(b.date)||a.updatedAt-b.updatedAt).forEach(item => lines.push(`| ${item.date} | ${item.weightKg.toFixed(1)} kg | ${weights.get(item.date)?.average7DaysKg.toFixed(1) ?? "—"} kg | ${dateTime(item.createdAt)} | ${dateTime(item.updatedAt)} | \`${item.id}\` |`));
-  lines.push("", "## Suivi nutritionnel", "", "Chaque ligne représente un apport saisi au fil de la journée ; les totaux additionnent toutes les entrées de la date.", "", "| Date | Heure | Calories | Protéines | Total kcal | Total protéines | Créée le | Modifiée le | Identifiant |", "|---|---|---:|---:|---:|---:|---|---|---|");
+  state.bodyWeights.slice().sort((a,b)=>a.date.localeCompare(b.date)||a.updatedAt-b.updatedAt).forEach(item => lines.push(`| ${item.date} | ${item.weightKg.toFixed(1)} kg | ${weights.get(item.date)?.average7DaysKg.toFixed(1) ?? "—"} kg | ${state.weightGoalKg==null?"—":`${signedGap(item.weightKg-state.weightGoalKg)} kg`} | ${dateTime(item.createdAt)} | ${dateTime(item.updatedAt)} | \`${item.id}\` |`));
+  lines.push("", "## Suivi nutritionnel", "", "Chaque ligne représente un apport saisi au fil de la journée ; les totaux additionnent toutes les entrées de la date. Les colonnes de reste comparent ces totaux aux objectifs du jour.", "", "| Date | Heure | Calories | Protéines | Total kcal | Total protéines | Reste kcal | Reste protéines | Créée le | Modifiée le | Identifiant |", "|---|---|---:|---:|---:|---:|---:|---:|---|---|---|");
   const nutritionByDate=new Map(nutritionTotals.map(item=>[item.date,item]));
-  state.nutritionEntries.slice().sort((a,b)=>a.date.localeCompare(b.date)||a.createdAt-b.createdAt).forEach(item => {const total=nutritionByDate.get(item.date);lines.push(`| ${item.date} | ${new Date(item.createdAt).toLocaleTimeString("fr-FR", {hour:"2-digit",minute:"2-digit"})} | ${item.caloriesKcal} kcal | ${item.proteinGrams.toFixed(1)} g | ${total?.caloriesKcal??item.caloriesKcal} kcal | ${(total?.proteinGrams??item.proteinGrams).toFixed(1)} g | ${dateTime(item.createdAt)} | ${dateTime(item.updatedAt)} | \`${item.id}\` |`)});
+  const remainingByDate=new Map([...nutritionByDate.keys()].map(date=>[date,nutritionRemaining(state.nutritionEntries,date,state.nutritionTargets)]));
+  state.nutritionEntries.slice().sort((a,b)=>a.date.localeCompare(b.date)||a.createdAt-b.createdAt).forEach(item => {const total=nutritionByDate.get(item.date);const rest=remainingByDate.get(item.date);lines.push(`| ${item.date} | ${new Date(item.createdAt).toLocaleTimeString("fr-FR", {hour:"2-digit",minute:"2-digit"})} | ${item.caloriesKcal} kcal | ${item.proteinGrams.toFixed(1)} g | ${total?.caloriesKcal??item.caloriesKcal} kcal | ${(total?.proteinGrams??item.proteinGrams).toFixed(1)} g | ${rest?.caloriesLeft==null?"—":`${signedInt(rest.caloriesLeft)} kcal`} | ${rest?.proteinLeft==null?"—":`${signedGap(rest.proteinLeft)} g`} | ${dateTime(item.createdAt)} | ${dateTime(item.updatedAt)} | \`${item.id}\` |`)});
   lines.push("", "## Règles de lecture", "", "- Une série **réalisée** a été explicitement validée dans l’application.", "- Une série **non réalisée** peut conserver des valeurs préremplies : elles ne constituent pas une performance.", "- Les séances supprimées sont exclues de ce document.", "- Les associations musculaires de la bibliothèque représentent leur état actuel.");
   return `${lines.join("\n")}\n`;
 }
 
 const md = value => String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll("\\", "\\\\").replace(/([`*_\[\]#|])/g, "\\$1").replaceAll("\r\n", "<br>").replaceAll("\r", "<br>").replaceAll("\n", "<br>");
+const signedInt = value => `${value>0?"+":""}${value}`;
+const signedGap = value => `${value>0?"+":""}${value.toFixed(1)}`;
 const yesNo = value => value ? "Oui" : "Non";
 const dateTime = value => new Date(value).toLocaleString("fr-FR",{timeZoneName:"short"});
 const formatMs = milliseconds => { const seconds=Math.floor(milliseconds/1000),hours=Math.floor(seconds/3600),minutes=Math.floor((seconds%3600)/60);return `${hours?`${hours}h `:""}${minutes}min ${seconds%60}s`; };

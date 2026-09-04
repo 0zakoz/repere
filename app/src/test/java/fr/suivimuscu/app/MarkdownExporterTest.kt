@@ -155,6 +155,12 @@ class MarkdownExporterTest {
         assertTrue(markdown.contains("meal-2"))
         assertTrue(markdown.contains("Objectifs nutritionnels** : 2200 kcal / 140,0 g de protéines"))
         assertTrue(markdown.contains("Poids objectif** : 75,5 kg"))
+        assertTrue(markdown.contains("Reste kcal"))
+        assertTrue(markdown.contains("+1150 kcal"))
+        assertTrue(markdown.contains("+79,5 g"))
+        assertTrue(markdown.contains("Écart objectif"))
+        assertTrue(markdown.contains("+4,5 kg"))
+        assertTrue(markdown.contains("+6,5 kg"))
         assertFalse(markdown.contains("deleted-newer"))
     }
 }

@@ -165,7 +165,9 @@ d’export lorsque la compatibilité l’exige.
 une conversation ChatGPT. Il couvre tout l’état utile de l’application : programmes actifs et
 archivés, modèles, bibliothèque, dernière performance réelle de chaque exercice, séances
 terminées visibles, brouillon, événements de cycle, pesées et chaque apport nutritionnel avec
-ses totaux quotidiens.
+ses totaux quotidiens. Les tableaux de poids et de nutrition ajoutent l’écart quotidien aux
+objectifs (poids objectif, calories et protéines cibles) lorsque ceux-ci sont définis ; les
+CSV conservent leurs colonnes gelées et n’incluent pas ces écarts.
 
 La dernière performance réelle est l’occurrence chronologiquement la plus récente qui contient
 au moins une série validée et valide. Les brouillons, séances supprimées et exercices laissés
