@@ -39,7 +39,7 @@ object CompleteMarkdownExporter {
         appendLine(
             "Ce document contient toutes les informations actuellement connues de l’application, " +
                 "présentées pour être lues par un humain ou analysées dans une conversation ChatGPT. " +
-                "Il n’invente aucune information non stockée (profil, objectifs, santé ou contexte personnel).",
+                "Il n’invente aucune information non stockée (profil, santé ou contexte personnel).",
         )
         appendLine()
         appendField("Version de l’application", appVersion)
@@ -69,6 +69,17 @@ object CompleteMarkdownExporter {
             latestNutrition?.let {
                 "${it.date} — ${it.caloriesKcal} kcal, ${formatNumber(it.proteinGrams)} g de protéines (${it.entryCount} apport${if (it.entryCount > 1) "s" else ""})"
             } ?: "Aucun",
+        )
+        appendField(
+            "Objectifs nutritionnels",
+            state.nutritionTargets?.let {
+                "${it.caloriesKcal?.let { calories -> "$calories kcal" } ?: "—"} / " +
+                    "${it.proteinGrams?.let { protein -> "${formatNumber(protein)} g de protéines" } ?: "—"}"
+            } ?: "Aucun",
+        )
+        appendField(
+            "Poids objectif",
+            state.weightGoalKg?.let { "${formatNumber(it)} kg" } ?: "Aucun",
         )
         appendLine()
 

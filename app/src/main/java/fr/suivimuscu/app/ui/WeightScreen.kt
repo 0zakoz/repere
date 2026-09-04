@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -56,6 +57,10 @@ fun WeightScreen(
     var weightText by remember(selectedDate, existing?.updatedAt, previous?.updatedAt) {
         mutableStateOf((existing?.weightKg ?: previous?.weightKg)?.let(::formatWeightInput).orEmpty())
     }
+    var goalText by remember(state.weightGoalKg) {
+        mutableStateOf(state.weightGoalKg?.let(::formatWeightInput).orEmpty())
+    }
+    var goalFeedback by remember { mutableStateOf<String?>(null) }
 
     fun selectDate(date: LocalDate) {
         selectedDate = date.coerceAtMost(today)
@@ -195,6 +200,35 @@ fun WeightScreen(
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = goalText,
+                            onValueChange = { value ->
+                                if (value.matches(Regex("""\d{0,3}([,.]\d?)?"""))) {
+                                    goalText = value
+                                    goalFeedback = null
+                                }
+                            },
+                            label = { Text("Objectif") },
+                            suffix = { Text("kg") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f),
+                        )
+                        Button(onClick = {
+                            val result = viewModel.saveWeightGoal(goalText)
+                            goalFeedback = if (result.isSuccess) "Objectif enregistré"
+                            else result.exceptionOrNull()?.message
+                            focusManager.clearFocus()
+                        }) { Text("OK") }
+                    }
+                    goalFeedback?.let {
+                        Text(
+                            it,
+                            color = if (it.startsWith("Objectif ")) appVisuals.success else MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                 }
             }
         }
@@ -213,7 +247,7 @@ fun WeightScreen(
                 }
             }
         }
-        item { BodyWeightChart(trend) }
+        item { BodyWeightChart(trend, state.weightGoalKg) }
         if (state.bodyWeights.isNotEmpty()) {
             item { Text("Dernières mesures", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
             itemsIndexed(
@@ -299,7 +333,7 @@ private fun WeightStepButton(
 }
 
 @Composable
-private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
+private fun BodyWeightChart(points: List<BodyWeightTrendPoint>, goalKg: Double?) {
     if (points.isEmpty()) {
         EmptyChart("Enregistre une mesure pour commencer le graphique")
         return
@@ -308,10 +342,11 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
     val selected = points.minBy { abs(it.timestamp - selectedTimestamp) }
     val minX = points.minOf { it.timestamp }
     val maxX = points.maxOf { it.timestamp }
-    val range = chartYRange(points.flatMap { listOf(it.weightKg.toFloat(), it.average7DaysKg.toFloat()) })
+    val range = chartYRange(points.flatMap { listOf(it.weightKg.toFloat(), it.average7DaysKg.toFloat()) } + listOfNotNull(goalKg?.toFloat()))
     val visuals = appVisuals
     val rawColor = visuals.chartSeries[0]
     val averageColor = visuals.chartSeries[1]
+    val goalColor = MaterialTheme.colorScheme.tertiary
 
     Card {
         Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -364,6 +399,16 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
                     }
                     drawSeries({ it.weightKg }, rawColor, 2.dp.toPx())
                     drawSeries({ it.average7DaysKg }, averageColor, 3.dp.toPx())
+                    if (goalKg != null) {
+                        val goalY = y(goalKg)
+                        drawLine(
+                            goalColor,
+                            Offset(left, goalY),
+                            Offset(right, goalY),
+                            2.dp.toPx(),
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f),
+                        )
+                    }
                     points.forEach { point ->
                         drawCircle(rawColor, 3.5.dp.toPx(), Offset(x(point.timestamp), y(point.weightKg)))
                     }
@@ -386,6 +431,10 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
                 LegendDot(rawColor, "Mesures brutes")
                 Spacer(Modifier.width(18.dp))
                 LegendDot(averageColor, "Moyenne 7 jours")
+                if (goalKg != null) {
+                    Spacer(Modifier.width(18.dp))
+                    LegendDot(goalColor, "Objectif")
+                }
             }
             Surface(color = MaterialTheme.colorScheme.primary.copy(alpha = .08f), shape = MaterialTheme.shapes.medium) {
                 Row(
@@ -401,6 +450,14 @@ private fun BodyWeightChart(points: List<BodyWeightTrendPoint>) {
                 }
             }
             Text("Touche le graphique pour inspecter une date.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (goalKg != null) {
+                val gap = points.last().weightKg - goalKg
+                Text(
+                    "Écart avec l’objectif : ${String.format(Locale.FRANCE, "%+.1f", gap)} kg",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = goalColor,
+                )
+            }
         }
     }
 }

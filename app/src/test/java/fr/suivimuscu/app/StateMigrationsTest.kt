@@ -3,6 +3,7 @@ package fr.suivimuscu.app
 import fr.suivimuscu.app.data.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -55,7 +56,7 @@ class StateMigrationsTest {
 
         val migrated = StateMigrations.toLatest(legacy)
 
-        assertEquals(4, migrated.schemaVersion)
+        assertEquals(5, migrated.schemaVersion)
         assertTrue(migrated.nutritionEntries.isEmpty())
         assertFalse(migrated.muscles.any { it.id == "forearms" })
         assertTrue(migrated.muscles.any { it.id == "forearm_flexors" })
@@ -72,5 +73,37 @@ class StateMigrationsTest {
             "forearm_flexors",
             migrated.workoutLogs.single().exercises.single().musclesSnapshot.single().muscleId,
         )
+    }
+
+    @Test
+    fun versionFourGainsNullTargetsAndWeightGoalWithoutLosingData() {
+        val legacy = AppState(
+            schemaVersion = 4,
+            bodyWeights = listOf(BodyWeightEntry("w", "2026-08-29", 80.2, 1)),
+            nutritionEntries = listOf(NutritionEntry("n", "2026-08-29", 650, 42.5, 1)),
+        )
+
+        val migrated = StateMigrations.toLatest(legacy)
+
+        assertEquals(5, migrated.schemaVersion)
+        assertNull(migrated.nutritionTargets)
+        assertNull(migrated.weightGoalKg)
+        assertEquals(80.2, migrated.bodyWeights.single().weightKg, 0.001)
+        assertEquals(650, migrated.nutritionEntries.single().caloriesKcal)
+    }
+
+    @Test
+    fun versionFiveKeepsExistingTargetsAndWeightGoal() {
+        val legacy = AppState(
+            schemaVersion = 5,
+            nutritionTargets = NutritionTargets(2200, 140.0),
+            weightGoalKg = 75.5,
+        )
+
+        val migrated = StateMigrations.toLatest(legacy)
+
+        assertEquals(5, migrated.schemaVersion)
+        assertEquals(NutritionTargets(2200, 140.0), migrated.nutritionTargets)
+        assertEquals(75.5, migrated.weightGoalKg!!, 0.001)
     }
 }

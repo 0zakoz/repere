@@ -10,6 +10,7 @@ import fr.suivimuscu.app.data.MuscleGroup
 import fr.suivimuscu.app.data.MuscleRole
 import fr.suivimuscu.app.data.MuscleSnapshot
 import fr.suivimuscu.app.data.NutritionEntry
+import fr.suivimuscu.app.data.NutritionTargets
 import fr.suivimuscu.app.data.ProgramEvent
 import fr.suivimuscu.app.data.TemplateExercise
 import fr.suivimuscu.app.data.TrainingProgram
@@ -122,6 +123,8 @@ class MarkdownExporterTest {
                 NutritionEntry("meal-1", "2026-07-03", 650, 42.5, 3_000),
                 NutritionEntry("meal-2", "2026-07-03", 400, 18.0, 4_000),
             ),
+            nutritionTargets = NutritionTargets(2200, 140.0),
+            weightGoalKg = 75.5,
         )
 
         val markdown = CompleteMarkdownExporter.export(
@@ -150,6 +153,8 @@ class MarkdownExporterTest {
         assertTrue(markdown.contains("1 050 kcal").or(markdown.contains("1050 kcal")))
         assertTrue(markdown.contains("60,5 g"))
         assertTrue(markdown.contains("meal-2"))
+        assertTrue(markdown.contains("Objectifs nutritionnels** : 2200 kcal / 140,0 g de protéines"))
+        assertTrue(markdown.contains("Poids objectif** : 75,5 kg"))
         assertFalse(markdown.contains("deleted-newer"))
     }
 }

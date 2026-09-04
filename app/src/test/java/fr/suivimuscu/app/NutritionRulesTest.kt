@@ -3,6 +3,7 @@ package fr.suivimuscu.app
 import fr.suivimuscu.app.data.AppState
 import fr.suivimuscu.app.data.NutritionCsvExporter
 import fr.suivimuscu.app.data.NutritionEntry
+import fr.suivimuscu.app.data.NutritionTargets
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -40,6 +41,28 @@ class NutritionRulesTest {
         assertEquals(1050, points.first().caloriesKcal)
         assertEquals(55.5, points.first().proteinGrams, 0.001)
         assertEquals(2, points.first().entryCount)
+    }
+
+    @Test
+    fun remainingComparesDayTotalsAgainstTargets() {
+        val entries = listOf(
+            NutritionEntry("a", "2026-08-29", 650, 42.5, 1),
+            NutritionEntry("b", "2026-08-29", 400, 18.0, 2),
+        )
+
+        val full = calculateNutritionRemaining(entries, "2026-08-29", NutritionTargets(2200, 140.0))
+        assertEquals(1050, full.caloriesIn)
+        assertEquals(60.5, full.proteinIn, 0.001)
+        assertEquals(1150, full.caloriesLeft)
+        assertEquals(79.5, full.proteinLeft!!, 0.001)
+
+        val exceeded = calculateNutritionRemaining(entries, "2026-08-29", NutritionTargets(500, 30.0))
+        assertEquals(-550, exceeded.caloriesLeft)
+        assertEquals(-30.5, exceeded.proteinLeft!!, 0.001)
+
+        val none = calculateNutritionRemaining(entries, "2026-08-29", null)
+        assertNull(none.caloriesLeft)
+        assertNull(none.proteinLeft)
     }
 
     @Test

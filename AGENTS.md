@@ -68,10 +68,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ## Repères rapides
 
 - Application Android affichée : **Suivi Muscu** ; dépôt GitHub : **repere**.
-- Version actuelle : **1.9.0** (`versionCode 13`).
+- Version actuelle : **1.10.0** (`versionCode 14`).
 - Module unique : `app`.
 - État métier : `AppState`, sérialisé en JSON et stocké dans une ligne Room.
-- Schéma métier actuel : version 4 ; schéma Room : version 1.
+- Schéma métier actuel : version 5 ; schéma Room : version 1.
 - Interface : Jetpack Compose / Material 3, cinq onglets, aucune permission Internet.
 - Client Web : PWA statique sous `web/`, IndexedDB local, service worker hors ligne et
   publication GitHub Pages par `.github/workflows/pages.yml`.

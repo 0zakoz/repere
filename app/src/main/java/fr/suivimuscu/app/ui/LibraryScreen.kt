@@ -34,12 +34,26 @@ fun LibraryScreen(
     onCreateTemplateHandled: () -> Unit = {},
 ) {
     Column(modifier.fillMaxSize()) {
+        var query by remember { mutableStateOf("") }
         Column(Modifier.padding(horizontal = 18.dp, vertical = 14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Bibliothèque", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 KawaiiHeaderDecoration("🎀")
             }
             Text("Tout reste modifiable et archivable.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text("Rechercher") },
+                leadingIcon = { Icon(Icons.Default.Search, null) },
+                trailingIcon = {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { query = "" }) { Icon(Icons.Default.Clear, "Effacer la recherche") }
+                    }
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            )
         }
         ScrollableTabRow(selectedTabIndex = selectedTab.ordinal, edgePadding = 12.dp) {
             LibraryTab.entries.forEach { item ->
@@ -66,28 +80,29 @@ fun LibraryScreen(
             }
         }
         when (selectedTab) {
-            LibraryTab.PROGRAMS -> ProgramsLibrary(state, viewModel)
+            LibraryTab.PROGRAMS -> ProgramsLibrary(state, viewModel, query)
             LibraryTab.TEMPLATES -> TemplatesLibrary(
                 state,
                 viewModel,
+                query = query,
                 createRequest = createTemplateRequest,
                 onCreateRequestHandled = onCreateTemplateHandled,
             )
-            LibraryTab.EXERCISES -> ExercisesLibrary(state, viewModel)
-            LibraryTab.MUSCLES -> MusclesLibrary(state, viewModel)
+            LibraryTab.EXERCISES -> ExercisesLibrary(state, viewModel, query)
+            LibraryTab.MUSCLES -> MusclesLibrary(state, viewModel, query)
         }
     }
 }
 
 @Composable
-private fun ExercisesLibrary(state: AppState, viewModel: MainViewModel) {
+private fun ExercisesLibrary(state: AppState, viewModel: MainViewModel, query: String = "") {
     var editing by remember { mutableStateOf<Exercise?>(null) }
     var creating by remember { mutableStateOf(false) }
     LibraryList(
         onAdd = { creating = true },
         addLabel = "Nouvel exercice",
     ) {
-        items(state.exercises.sortedWith(compareBy<Exercise> { it.archived }.thenBy { it.name }), key = { it.id }) { exercise ->
+        items(state.exercises.filter { libraryMatchesQuery(it.name, query) }.sortedWith(compareBy<Exercise> { it.archived }.thenBy { it.name }), key = { it.id }) { exercise ->
             val deletable = !exerciseUsedInHistory(state, exercise.id)
             LibraryRow(
                 title = exercise.name,
@@ -225,6 +240,7 @@ fun ExerciseEditDialog(
 private fun TemplatesLibrary(
     state: AppState,
     viewModel: MainViewModel,
+    query: String = "",
     createRequest: Int = 0,
     onCreateRequestHandled: () -> Unit = {},
 ) {
@@ -237,7 +253,7 @@ private fun TemplatesLibrary(
         }
     }
     LibraryList(onAdd = { creating = true }, addLabel = "Nouvelle séance") {
-        items(state.templates.sortedWith(compareBy<WorkoutTemplate> { it.archived }.thenBy { it.name }), key = { it.id }) { template ->
+        items(state.templates.filter { libraryMatchesQuery(it.name, query) }.sortedWith(compareBy<WorkoutTemplate> { it.archived }.thenBy { it.name }), key = { it.id }) { template ->
             val deletable = !templateUsedInHistory(state, template.id)
             LibraryRow(
                 title = "Séance ${template.name}",
@@ -380,12 +396,12 @@ private fun TemplateDialog(
 }
 
 @Composable
-private fun ProgramsLibrary(state: AppState, viewModel: MainViewModel) {
+private fun ProgramsLibrary(state: AppState, viewModel: MainViewModel, query: String = "") {
     var editing by remember { mutableStateOf<TrainingProgram?>(null) }
     var creating by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<TrainingProgram?>(null) }
     LibraryList(onAdd = { creating = true }, addLabel = "Nouveau programme") {
-        items(state.programs.sortedWith(compareByDescending<TrainingProgram> { it.active }.thenBy { it.archived }), key = { it.id }) { program ->
+        items(state.programs.filter { libraryMatchesQuery(it.name, query) }.sortedWith(compareByDescending<TrainingProgram> { it.active }.thenBy { it.archived }), key = { it.id }) { program ->
             val cycleNames = program.templateCycle.mapNotNull { id -> state.templates.firstOrNull { it.id == id }?.name }
             val deletable = !programUsedInHistory(state, program.id)
             ProgramRow(
@@ -558,11 +574,11 @@ private fun ProgramRow(
 }
 
 @Composable
-private fun MusclesLibrary(state: AppState, viewModel: MainViewModel) {
+private fun MusclesLibrary(state: AppState, viewModel: MainViewModel, query: String = "") {
     var editing by remember { mutableStateOf<MuscleGroup?>(null) }
     var creating by remember { mutableStateOf(false) }
     LibraryList(onAdd = { creating = true }, addLabel = "Nouveau muscle") {
-        items(state.muscles.sortedWith(compareBy<MuscleGroup> { it.archived }.thenBy { it.name }), key = { it.id }) { muscle ->
+        items(state.muscles.filter { libraryMatchesQuery(it.name, query) }.sortedWith(compareBy<MuscleGroup> { it.archived }.thenBy { it.name }), key = { it.id }) { muscle ->
             val count = state.exercises.count { ex -> ex.muscles.any { it.muscleId == muscle.id } }
             val deletable = !muscleUsedInHistory(state, muscle.id)
             LibraryRow(
@@ -677,3 +693,8 @@ private fun LibraryRow(
 }
 
 private fun dayShort(day: Int) = listOf("", "L", "Ma", "Me", "J", "V", "S", "D").getOrElse(day) { "?" }
+
+internal fun libraryMatchesQuery(name: String, query: String): Boolean {
+    val trimmed = query.trim()
+    return trimmed.isEmpty() || name.contains(trimmed, ignoreCase = true)
+}

@@ -12,7 +12,7 @@ secret applicatif ou jeu de données personnel ne doit donc être placé dans `w
 build ou publié comme ressource statique.
 
 La PWA reprend les cinq onglets Android, les règles de programme et de préremplissage, le suivi
-poids/nutrition, les tendances, les cinq thèmes et les mêmes formats d’export. La sauvegarde
+poids/nutrition avec objectifs, les tendances, les cinq thèmes et les mêmes formats d’export. La sauvegarde
 JSON est conçue pour passer d’Android au Web et inversement. Il n’existe pas de synchronisation
 automatique entre les deux installations.
 
@@ -41,6 +41,9 @@ est récupérée par le service worker ; elle peut demander une fermeture/réouv
 - La restauration remplace toute la base locale après confirmation ; les thèmes restent
   propres à l’appareil. Avant remplacement, elle affiche le contenu de la sauvegarde
   (séances terminées, pesées, apports) et avertit si elle semble vide.
+- Les objectifs nutritionnels et le poids objectif font partie de `AppState` et traversent
+  les appareils via la sauvegarde. Des objectifs saisis avant le schéma 5 (ancien stockage
+  local) sont repris automatiquement une seule fois au premier chargement.
 - Le thème par défaut sur le Web est **Kawaii** (sombre) ; un choix explicite reste conservé
   dans `localStorage` et n’est jamais écrasé par une mise à jour.
 - Sur iPhone, les exports CSV/Markdown et la sauvegarde JSON passent par la feuille de
@@ -53,7 +56,7 @@ est récupérée par le service worker ; elle peut demander une fermeture/réouv
 - `index.html`, `manifest.webmanifest`, `sw.js` : coquille installable et cache hors ligne ;
 - `js/state.js`, `seed.js`, `store.js` : schéma, migration, seed et IndexedDB ;
 - `js/rules.js` : règles métier pures ;
-- `js/app.js`, `ui.js`, `charts.js`, `styles.css` : interface mobile et thèmes ;
+- `js/app.js`, `nutritionView.js`, `ui.js`, `charts.js`, `styles.css` : interface mobile et thèmes ;
 - `js/exporters.js` : CSV, Markdown et sauvegarde côté interface ;
 - `tests/` : tests Node du métier et de la configuration PWA ;
 - `scripts/serve.mjs` : serveur statique local sans dépendance.

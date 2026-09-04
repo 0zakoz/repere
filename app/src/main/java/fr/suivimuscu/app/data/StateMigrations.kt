@@ -1,6 +1,6 @@
 package fr.suivimuscu.app.data
 
-internal const val LATEST_SCHEMA_VERSION = 4
+internal const val LATEST_SCHEMA_VERSION = 5
 
 internal object StateMigrations {
     private const val LEGACY_FOREARMS = "forearms"
@@ -15,8 +15,11 @@ internal object StateMigrations {
         if (migrated.schemaVersion < 2) migrated = migrateToVersion2(migrated)
         if (migrated.schemaVersion < 3) migrated = migrateToVersion3(migrated)
         if (migrated.schemaVersion < 4) migrated = migrateToVersion4(migrated)
+        if (migrated.schemaVersion < 5) migrated = migrateToVersion5(migrated)
         return migrated
     }
+
+    private fun migrateToVersion5(state: AppState): AppState = state.copy(schemaVersion = 5)
 
     private fun migrateToVersion4(state: AppState): AppState = state.copy(schemaVersion = 4)
 

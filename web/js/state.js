@@ -3,14 +3,38 @@ const LISTS = ["muscles", "exercises", "templates", "programs", "programEvents",
 export function normalizeState(input) {
   if (!input || typeof input !== "object") throw new Error("Sauvegarde illisible");
   const version = Number(input.schemaVersion ?? 1);
-  if (!Number.isInteger(version) || version < 1 || version > 4) throw new Error("Version de sauvegarde incompatible");
+  if (!Number.isInteger(version) || version < 1 || version > 5) throw new Error("Version de sauvegarde incompatible");
   let state = structuredClone(input);
   for (const key of LISTS) if (!Array.isArray(state[key])) state[key] = [];
   if (version < 2) state = migrateForearms(state);
   if (version < 3) state = { ...state, schemaVersion: 3, bodyWeights: state.bodyWeights ?? [] };
   if (version < 4) state = { ...state, schemaVersion: 4, nutritionEntries: state.nutritionEntries ?? [] };
-  state.schemaVersion = 4;
+  if (version < 5) state = { ...state, schemaVersion: 5 };
+  state.schemaVersion = 5;
+  state.nutritionTargets = sanitizeTargets(state.nutritionTargets);
+  state.weightGoalKg = sanitizeWeightGoal(state.weightGoalKg);
   return state;
+}
+
+function numOrNull(value) {
+  if (value == null || String(value).trim() === "") return null;
+  return Number(String(value).trim().replace(",", "."));
+}
+
+export function sanitizeTargets(raw) {
+  const out = { caloriesKcal: null, proteinGrams: null };
+  if (!raw || typeof raw !== "object") return out;
+  const calories = numOrNull(raw.caloriesKcal);
+  const protein = numOrNull(raw.proteinGrams);
+  if (Number.isInteger(calories) && calories > 0 && calories <= 100000) out.caloriesKcal = calories;
+  if (Number.isFinite(protein) && protein >= 0 && protein <= 10000) out.proteinGrams = Math.round(protein * 10) / 10;
+  return out;
+}
+
+function sanitizeWeightGoal(raw) {
+  const goal = Number(raw);
+  if (!Number.isFinite(goal) || goal < 0.1 || goal > 500) return null;
+  return Math.round(goal * 10) / 10;
 }
 
 function migrateForearms(state) {

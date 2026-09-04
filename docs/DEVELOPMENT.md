@@ -58,9 +58,13 @@ Les tests JVM sous `app/src/test` couvrent notamment :
 - réordonnancement des exercices et correction des durées de séance ou de repos ;
 - chronologie de l’historique et agrégations de séances/muscles ;
 - rôles musculaires et suppressions en cascade de la Bibliothèque ;
-- saisie du poids, préremplissage, moyenne sur sept jours et CSV ;
-- saisie nutritionnelle cumulative, validation, agrégation quotidienne et CSV ;
-- seed initial, migrations du schéma métier et export CSV ;
+- saisie du poids, préremplissage, moyenne sur sept jours, objectif affiché sur le
+  graphique et CSV ;
+- saisie nutritionnelle cumulative, validation, agrégation quotidienne, objectifs et restes
+  du jour, et CSV ;
+- recherche textuelle de la Bibliothèque ;
+- seed initial, migrations du schéma métier (jusqu’à v5 : objectifs et poids objectif) et
+  export Markdown complet incluant les objectifs ;
 - domaines et contraste des graphiques Canvas ;
 - décodage des préférences d’apparence, lisibilité des dix palettes et distinction des séries
   de graphiques.

@@ -47,11 +47,14 @@ porte les calculs purs réutilisés par les tests. `state.js` normalise et migre
 - `MainViewModel.kt` contient les mutations métier, le cycle des programmes, la gestion du
   brouillon, son réordonnancement, la correction des durées, les règles de suppression, le
   poids, la nutrition et les agrégations de tendances.
+- `NutritionRules.kt` et `WeightRules.kt` portent les règles pures du poids et de la nutrition
+  (validation, tendances, restes aux objectifs) ; le ViewModel ne conserve que les fines
+  enveloppes `mutate{}` et les flux stateful (brouillon, cycle).
 - `SuiviMuscuApplication.kt` construit `AppDatabase` et `AppRepository` sans conteneur DI.
 
-Le ViewModel est aujourd’hui le principal point de coordination. Une future évolution peut
-extraire des services ou cas d’usage si cela améliore réellement la lisibilité ou les tests ;
-ce découpage n’est pas une contrainte d’architecture.
+Le ViewModel reste le point de coordination des flux stateful ; les règles pures vivent dans
+des fichiers de domaine testés. Toute nouvelle règle métier testable va dans le fichier de
+domaine correspondant, pas dans le ViewModel.
 
 ### Couche données
 
@@ -140,6 +143,17 @@ leurs licences OFL afin de rester disponibles hors ligne.
   permission globale de stockage.
 - Android et Web partagent la forme de `AppState`, pas une bibliothèque de code. Toute règle
   métier commune modifiée dans un client doit donc être vérifiée dans l’autre et documentée si
-  leur comportement diverge volontairement.
+  leur comportement diverge volontairement. Correspondances à maintenir :
+  | Domaine | Kotlin | JavaScript |
+  |---|---|---|
+  | Séries, chronomètre, préremplissage, durées, repos | `MainViewModel.kt` (fonctions internes) | `js/rules.js` |
+  | Poids (validation, préremplissage, moyenne 7 j) | `WeightRules.kt` | `js/rules.js` (`normalizeWeight`, `weightTrend`) |
+  | Nutrition (validation, cumul, restes aux objectifs) | `NutritionRules.kt` | `js/rules.js` (+ `adoptLegacyTargets`) |
+  | Tendances séances/muscles | `MainViewModel.kt` (`calculate*`) | `js/rules.js` (`sessionStats`, `muscleStats`) |
+  | Migrations métier | `StateMigrations.kt` | `js/state.js` |
+  | Seed premier lancement | `SeedData.kt` | `js/seed.js` |
+  | Exports CSV/Markdown | `Exporters.kt`, `MarkdownExporter.kt` | `js/exporters.js` |
+  Les tests miroirs (`app/src/test`, `web/tests`) verrouillent chaque paire ; tout écart
+  volontaire est documenté dans `PRODUCT.md` ou `DATA.md`.
 - IndexedDB et le stockage Safari ne constituent pas une sauvegarde. La restauration JSON est
   le seul mécanisme actuel de transfert entre appareils.

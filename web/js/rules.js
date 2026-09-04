@@ -1,5 +1,5 @@
 import { localDate } from "./seed.js";
-import { uid } from "./state.js";
+import { sanitizeTargets, uid } from "./state.js";
 
 export const ROLE_FACTOR = { PRIMARY: 1, SECONDARY: 0.5, TERTIARY: 0.25 };
 
@@ -362,4 +362,15 @@ export function backupSummary(state) {
     weights: state.bodyWeights.length,
     nutrition: state.nutritionEntries.length,
   };
+}
+
+export function hasNutritionTargets(targets) {
+  return targets?.caloriesKcal != null || targets?.proteinGrams != null;
+}
+
+export function adoptLegacyTargets(state, legacy) {
+  if (!legacy || typeof legacy !== "object" || hasNutritionTargets(state.nutritionTargets)) return state;
+  const adopted = sanitizeTargets(legacy);
+  if (!hasNutritionTargets(adopted)) return state;
+  return { ...state, nutritionTargets: adopted };
 }

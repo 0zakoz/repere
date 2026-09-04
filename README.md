@@ -3,8 +3,8 @@
 Repère est un carnet personnel de musculation, de poids et de nutrition. Le dépôt contient
 deux clients hors ligne partageant le même modèle de sauvegarde :
 
-- l’application Android **Suivi Muscu**, version **1.9.0** (`versionCode 13`) ;
-- la PWA **Repère Web**, version **1.9.0**, destinée notamment à l’iPhone.
+- l’application Android **Suivi Muscu**, version **1.10.0** (`versionCode 14`) ;
+- la PWA **Repère Web**, version **1.11.0**, destinée notamment à l’iPhone.
 
 Les deux versions sont en français, mono-utilisateur et sans compte. Les données restent sur
 l’appareil ; il n’existe ni serveur applicatif, ni télémétrie, ni synchronisation automatique.
@@ -29,6 +29,7 @@ la base locale.
 ## Fonctionnalités
 
 - bibliothèque modifiable de programmes, modèles de séance, exercices et muscles ;
+- bibliothèque recherchable par nom sur Android ;
 - programme actif, cycle A/B, jours indicatifs et gestion des créneaux manqués ;
 - séance autosauvegardée, préremplie depuis la dernière performance réelle de chaque exercice ;
 - sélection recherchable dans toute la bibliothèque et ordre des exercices modifiable ;
@@ -36,8 +37,8 @@ la base locale.
 - historique éditable avec date, heure, durée, temps de repos et note ;
 - tendances par exercice, séance et muscle ;
 - volume musculaire principal ×1, secondaire ×0,5 et tertiaire ×0,25 ;
-- poids, moyenne mobile sur sept jours et graphique ;
-- apports progressifs de calories/protéines et courbes quotidiennes ;
+- poids, objectif affiché sur le graphique, moyenne mobile sur sept jours et graphique ;
+- apports progressifs de calories/protéines, objectifs quotidiens avec restes, et courbes quotidiennes ;
 - thèmes Original, Kawaii, Pastel, OLED et Épuré, en clair, sombre ou système ;
 - exports CSV, export Markdown complet pour ChatGPT et sauvegarde/restauration JSON.
 
@@ -49,7 +50,8 @@ Android et la PWA possèdent chacun leur base locale : une saisie faite sur un t
 n’apparaît pas automatiquement sur l’autre. Pour transférer ou recopier l’état complet,
 exporter une **Sauvegarde complète JSON** sur l’appareil source puis la restaurer sur l’autre.
 La restauration remplace l’état du client cible après confirmation. Les préférences de thème
-restent propres à chaque appareil.
+restent propres à chaque appareil ; les objectifs nutritionnels et de poids font partie de
+la sauvegarde et traversent les appareils.
 
 La structure et les règles de compatibilité sont décrites dans [docs/DATA.md](docs/DATA.md).
 

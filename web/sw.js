@@ -1,11 +1,11 @@
-const CACHE = "repere-web-v1.10.1";
+const CACHE = "repere-web-v1.11.0";
 const BASE = new URL("./", self.location).pathname;
 const ASSETS = [
   "./", "./index.html", "./styles.css", "./manifest.webmanifest", "./assets/icon.svg",
   "./assets/icon-180.png", "./assets/icon-512.png",
   "./assets/nunito-variable.ttf", "./assets/fredoka-variable.ttf",
   "./js/app.js", "./js/seed.js", "./js/state.js", "./js/store.js", "./js/rules.js",
-  "./js/exporters.js", "./js/charts.js", "./js/ui.js"
+  "./js/exporters.js", "./js/charts.js", "./js/ui.js", "./js/nutritionView.js"
 ].map(path => new URL(path, self.location).pathname);
 
 self.addEventListener("install", event => {

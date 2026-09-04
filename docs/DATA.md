@@ -9,7 +9,7 @@ clés inconnues ignorées et format lisible.
 Deux versions coexistent :
 
 - schéma Room : **1**, décrit dans `app/schemas/fr.suivimuscu.app.data.AppDatabase/1.json` ;
-- schéma métier `AppState.schemaVersion` : **4**, migré par `StateMigrations`.
+- schéma métier `AppState.schemaVersion` : **5**, migré par `StateMigrations`.
 
 Une modification des classes sérialisées ne nécessite pas forcément une migration Room. Elle
 peut en revanche nécessiter une nouvelle version métier, des valeurs par défaut et une étape de
@@ -39,6 +39,8 @@ ressources statiques et ne sert pas de stockage métier.
 - `bodyWeights` : une mesure datée, avec dates de création et modification.
 - `nutritionEntries` : apports datés et horodatés contenant calories et protéines ; plusieurs
   entrées peuvent appartenir à la même journée.
+- `nutritionTargets` : objectifs caloriques et protéiques uniques, suivis chaque jour ;
+- `weightGoalKg` : poids objectif unique, affiché sur la courbe de poids.
 
 Un `WorkoutLog` conserve notamment la date locale choisie, les horodatages de début/fin, le
 modèle et le programme éventuels, une note et les exercices. Chaque `LoggedExercise` stocke
@@ -81,6 +83,10 @@ calculs et exports la normalisent au besoin avec un point décimal.
   compatibilité des anciens JSON.
 - v3 → v4 : introduit les entrées nutritionnelles multiples ; les anciens états reçoivent une
   liste vide et conservent toutes leurs données existantes.
+- v4 → v5 : introduit les objectifs nutritionnels et le poids objectif ; les anciens états
+  reçoivent des valeurs nulles (objectifs désactivés) et conservent toutes leurs données
+  existantes. Sur le Web, des objectifs saisis avant la migration (stockage local) sont repris
+  une seule fois dans l’état au premier chargement.
 
 `StateMigrations.toLatest` refuse les versions hors de l’intervalle supporté. Toute nouvelle
 migration doit être déterministe, testée depuis les versions réellement existantes et appliquée
@@ -101,10 +107,9 @@ d’aller-retour du schéma courant.
 
 La version Web importe et exporte ce même objet JSON. C’est le mécanisme de transfert prévu
 entre Android et iPhone ; il remplace intégralement l’état du client cible et ne fusionne pas
-deux historiques. Les préférences propres à l’appareil (thème et objectifs nutritionnels Web,
-stockés en `localStorage`) ne font pas partie de la sauvegarde et ne traversent donc pas les
-appareils. Toute évolution du format doit être implémentée et testée dans
-`StateMigrations.kt` et `web/js/state.js` avant livraison.
+deux historiques. Les objectifs et le poids objectif font partie de la sauvegarde et traversent
+donc les appareils ; seul le thème reste propre à chaque appareil. Toute évolution du format
+doit être implémentée et testée dans `StateMigrations.kt` et `web/js/state.js` avant livraison.
 
 Sur iPhone, IndexedDB reste lié au site `https://0zakoz.github.io/repere/`. Effacer les données
 Safari ou le stockage de la PWA peut le supprimer. La demande de persistance Web réduit ce

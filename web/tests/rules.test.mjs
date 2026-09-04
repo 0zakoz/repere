@@ -2,25 +2,53 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createSeedState } from "../js/seed.js";
 import { normalizeState } from "../js/state.js";
-import { backupSummary, completeWorkout, isSetValid, lastPerformedExercise, missedSlotCount, moveWorkoutExercise, normalizeTargetCalories, normalizeTargetProtein, nutritionRemaining, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend, workoutWithDuration, workoutWithSetRest } from "../js/rules.js";
+import { adoptLegacyTargets, backupSummary, completeWorkout, hasNutritionTargets, isSetValid, lastPerformedExercise, missedSlotCount, moveWorkoutExercise, normalizeTargetCalories, normalizeTargetProtein, nutritionRemaining, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend, workoutWithDuration, workoutWithSetRest } from "../js/rules.js";
 import { markdownExport, nutritionCsv, workoutCsv } from "../js/exporters.js";
 
 test("le seed correspond au programme Android", () => {
   const state = createSeedState(new Date("2026-08-31T12:00:00"));
-  assert.equal(state.schemaVersion, 4);
+  assert.equal(state.schemaVersion, 5);
   assert.deepEqual(state.programs[0].templateCycle, ["session_a", "session_b"]);
   assert.equal(state.templates[0].exercises.length, 7);
   assert.equal(state.templates[1].exercises.length, 6);
   assert.equal(state.muscles.length, 18);
 });
 
-test("les anciennes sauvegardes migrent jusqu'au schéma 4", () => {
+test("les anciennes sauvegardes migrent jusqu'au schéma 5", () => {
   const old = { schemaVersion: 1, muscles: [{id:"forearms",name:"Avant-bras",archived:false}], exercises: [], templates: [], programs: [], programEvents: [], workoutLogs: [] };
   const migrated = normalizeState(old);
-  assert.equal(migrated.schemaVersion, 4);
+  assert.equal(migrated.schemaVersion, 5);
   assert.ok(migrated.muscles.some(item => item.id === "forearm_flexors"));
   assert.deepEqual(migrated.bodyWeights, []);
   assert.deepEqual(migrated.nutritionEntries, []);
+  assert.deepEqual(migrated.nutritionTargets, { caloriesKcal: null, proteinGrams: null });
+  assert.equal(migrated.weightGoalKg, null);
+});
+
+test("le schéma 4 gagne des objectifs nuls et conserve ses données", () => {
+  const old = { schemaVersion: 4, muscles: [], exercises: [], templates: [], programs: [], programEvents: [], workoutLogs: [], bodyWeights: [{ id: "b", date: "2026-08-29", weightKg: 80.2, createdAt: 1, updatedAt: 1 }], nutritionEntries: [] };
+  const migrated = normalizeState(old);
+  assert.equal(migrated.schemaVersion, 5);
+  assert.equal(migrated.bodyWeights[0].weightKg, 80.2);
+  assert.deepEqual(migrated.nutritionTargets, { caloriesKcal: null, proteinGrams: null });
+  assert.equal(migrated.weightGoalKg, null);
+  const kept = normalizeState({ ...old, schemaVersion: 5, nutritionTargets: { caloriesKcal: 2200, proteinGrams: 140 }, weightGoalKg: 75.5 });
+  assert.deepEqual(kept.nutritionTargets, { caloriesKcal: 2200, proteinGrams: 140 });
+  assert.equal(kept.weightGoalKg, 75.5);
+  const cleaned = normalizeState({ ...old, schemaVersion: 5, nutritionTargets: { caloriesKcal: 0, proteinGrams: "abc" }, weightGoalKg: "lourd" });
+  assert.deepEqual(cleaned.nutritionTargets, { caloriesKcal: null, proteinGrams: null });
+  assert.equal(cleaned.weightGoalKg, null);
+});
+
+test("l'adoption reprend les objectifs du stockage local une seule fois", () => {
+  const base = normalizeState({ schemaVersion: 5, muscles: [], exercises: [], templates: [], programs: [], programEvents: [], workoutLogs: [], bodyWeights: [], nutritionEntries: [] });
+  assert.equal(hasNutritionTargets(base.nutritionTargets), false);
+  const adopted = adoptLegacyTargets(base, { caloriesKcal: 2200, proteinGrams: "140" });
+  assert.equal(hasNutritionTargets(adopted.nutritionTargets), true);
+  assert.deepEqual(adopted.nutritionTargets, { caloriesKcal: 2200, proteinGrams: 140 });
+  assert.equal(adoptLegacyTargets(adopted, { caloriesKcal: 1800, proteinGrams: 100 }), adopted);
+  assert.equal(adoptLegacyTargets(base, { caloriesKcal: null, proteinGrams: null }), base);
+  assert.equal(adoptLegacyTargets(base, null), base);
 });
 
 test("le préremplissage ignore une occurrence vide plus récente", () => {
@@ -128,5 +156,8 @@ test("les exports excluent les séries non réalisées et documentent la nutriti
   const markdown = markdownExport(state);
   assert.match(markdown,/Suivi nutritionnel/);
   assert.match(markdown,/500 kcal/);
-  assert.match(markdown,/Version du schéma.*4/);
+  assert.match(markdown,/Version du schéma.*5/);
+  const withGoals = markdownExport({ ...state, nutritionTargets: { caloriesKcal: 2200, proteinGrams: 140 }, weightGoalKg: 75.5 });
+  assert.match(withGoals,/Objectifs nutritionnels.*2200 kcal \/ 140\.0 g/);
+  assert.match(withGoals,/Poids objectif.*75\.5 kg/);
 });

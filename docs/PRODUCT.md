@@ -72,6 +72,8 @@ définis dans `SeedData.kt` ; ils restent entièrement modifiables depuis la Bib
 - Des boutons ajustent la valeur de ±1 kg, ±0,5 kg ou ±0,1 kg.
 - Le graphique juxtapose les mesures brutes et la moyenne glissante sur les sept derniers
   jours disponibles, avec filtres 4, 12, 52 semaines ou Tout.
+- Un poids objectif peut être saisi une seule fois : il apparaît en pointillés sur le
+  graphique avec l’écart à la dernière mesure. Le laisser vide le retire.
 - Une mesure existante peut être modifiée, supprimée ou exportée en CSV.
 
 ### Nutrition
@@ -81,11 +83,11 @@ définis dans `SeedData.kt` ; ils restent entièrement modifiables depuis la Bib
 - Une journée peut contenir autant d’entrées que nécessaire. Chaque entrée conserve son heure,
   ses calories et ses grammes de protéines ; elle peut être modifiée ou supprimée séparément.
 - L’en-tête additionne immédiatement toutes les entrées de la date sélectionnée.
-- Des objectifs caloriques et protéiques peuvent être saisis une seule fois (Web uniquement) :
-  l’en-tête affiche alors les calories restantes et les protéines manquantes du jour, avec
-  mention explicite du dépassement ou de l’atteinte. Laisser un objectif vide le retire.
-  Ces objectifs sont propres à l’appareil (comme le thème) : ils ne font pas partie de la
-  sauvegarde JSON et ne sont ni restaurés ni exportés.
+- Des objectifs caloriques et protéiques peuvent être saisis une seule fois : l’en-tête
+  affiche alors les calories restantes et les protéines manquantes du jour, avec mention
+  explicite du dépassement ou de l’atteinte. Laisser un objectif vide le retire. Ces objectifs
+  font partie de la sauvegarde JSON et traversent donc les appareils, comme le reste des
+  données ; seul le thème reste propre à chaque appareil.
 - Deux courbes séparées affichent les totaux quotidiens de calories et de protéines sur 4, 12,
   52 semaines ou tout l’historique. Les jours sans saisie restent simplement absents.
 - L’historique brut peut être exporté en CSV ; la sauvegarde JSON et l’export Markdown complet
@@ -119,6 +121,7 @@ l’exercice n’existe plus dans la Bibliothèque, son snapshot historique sert
 - **Exercices** : nom, plage de répétitions, consigne permanente et muscles principaux,
   secondaires ou tertiaires.
 - **Muscles** : groupes libres, dont les fléchisseurs et extenseurs de l’avant-bras séparés.
+- Sur Android, un champ de recherche filtre les quatre listes par nom.
 
 Un élément utilisé dans une séance terminée est archivable mais pas supprimable définitivement.
 La suppression d’un élément jamais utilisé met à jour ses références : exercices retirés des
@@ -167,5 +170,5 @@ demande confirmation et remplace l’état local uniquement après décodage et 
 - pas de tests instrumentés ou Compose UI dans le dépôt à ce jour ; les parcours sur téléphone
   sont validés manuellement lorsque nécessaire.
 
-Ces limites décrivent la version 1.9.0. Elles peuvent évoluer si une nouvelle demande le
+Ces limites décrivent la version 1.10.0. Elles peuvent évoluer si une nouvelle demande le
 justifie.

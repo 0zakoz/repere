@@ -1,5 +1,6 @@
 import { createSeedState } from "./seed.js";
 import { normalizeState } from "./state.js";
+import { adoptLegacyTargets } from "./rules.js";
 
 const DB_NAME = "repere-pwa";
 const STORE = "state";
@@ -34,8 +35,12 @@ export async function loadState() {
     return seeded;
   }
   const migrated = normalizeState(raw);
-  if (JSON.stringify(raw) !== JSON.stringify(migrated)) await saveState(migrated);
-  return migrated;
+  const adopted = adoptLegacyTargets(migrated, readLegacyTargets());
+  if (adopted !== migrated) {
+    try { localStorage.removeItem(TARGETS_KEY); } catch { /* stockage indisponible */ }
+  }
+  if (JSON.stringify(raw) !== JSON.stringify(adopted)) await saveState(adopted);
+  return adopted;
 }
 
 export async function saveState(state) {
@@ -68,23 +73,7 @@ export function saveAppearance(value) {
 
 const TARGETS_KEY = "repere-nutrition-targets";
 
-export function loadNutritionTargets() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(TARGETS_KEY));
-    const calories = Number(parsed?.caloriesKcal);
-    const protein = Number(parsed?.proteinGrams);
-    return {
-      caloriesKcal: Number.isInteger(calories) && calories > 0 && calories <= 100000 ? calories : null,
-      proteinGrams: Number.isFinite(protein) && protein >= 0 && protein <= 10000 ? Math.round(protein * 10) / 10 : null,
-    };
-  } catch { return { caloriesKcal: null, proteinGrams: null }; }
-}
-
-export function saveNutritionTargets(value) {
-  const next = {
-    caloriesKcal: value?.caloriesKcal ?? null,
-    proteinGrams: value?.proteinGrams ?? null,
-  };
-  localStorage.setItem(TARGETS_KEY, JSON.stringify(next));
-  return next;
+function readLegacyTargets() {
+  try { return JSON.parse(localStorage.getItem(TARGETS_KEY)); }
+  catch { return null; }
 }

@@ -71,3 +71,19 @@ export function number(value, digits = 1) {
 export function catSvg() {
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 9.1 6.5.5 11 6.7Z" fill="#63433f"/><path d="M13 6.7 17.5.5 19.2 9.1Z" fill="#63433f"/><circle cx="12" cy="13.2" r="8.6" fill="#ffe9c9"/><ellipse cx="12" cy="13.5" rx="5" ry="6" fill="#63433f"/><circle cx="9.6" cy="11.5" r="1.3" fill="#77c7f2"/><circle cx="14.4" cy="11.5" r="1.3" fill="#77c7f2"/><circle cx="9.6" cy="11.5" r=".6" fill="#2b1d25"/><circle cx="14.4" cy="11.5" r=".6" fill="#2b1d25"/><circle cx="12" cy="15.1" r=".85" fill="#f2a0b7"/></svg>`;
 }
+
+export function kawaiiFace(emoji) {
+  return emoji === "🐱" ? catSvg() : emoji;
+}
+
+export function kawaii(theme, emoji) {
+  return theme === "kawaii" ? `<span class="mascot">${kawaiiFace(emoji)}</span><span class="kawaii-deco heart" aria-hidden="true">♥</span><span class="kawaii-deco star" aria-hidden="true">✦</span>` : "";
+}
+
+export function header(title, subtitle, actions = "", emoji = "", theme = "original") {
+  return `<header class="screen-header"><div><h1>${html(title)}${kawaii(theme, emoji)}</h1><p>${html(subtitle)}</p></div><div class="header-actions">${actions}</div></header>`;
+}
+
+export function rangeChips(range) {
+  return `<div class="chip-row">${[4,12,52,null].map(value=>`<button class="chip ${range===value?"active":""}" data-action="range" data-range="${value??"all"}">${value?`${value} sem.`:"Tout"}</button>`).join("")}</div>`;
+}

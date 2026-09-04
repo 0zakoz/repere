@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import fr.suivimuscu.app.MainViewModel
+import fr.suivimuscu.app.calculateNutritionRemaining
 import fr.suivimuscu.app.data.AppState
 import fr.suivimuscu.app.data.NutritionDayTotal
 import fr.suivimuscu.app.data.NutritionEntry
@@ -80,6 +82,13 @@ fun NutritionScreen(
     var caloriesText by remember { mutableStateOf("") }
     var proteinText by remember { mutableStateOf("") }
     var feedback by remember { mutableStateOf<String?>(null) }
+    var targetCaloriesText by remember(state.nutritionTargets) {
+        mutableStateOf(state.nutritionTargets?.caloriesKcal?.toString().orEmpty())
+    }
+    var targetProteinText by remember(state.nutritionTargets) {
+        mutableStateOf(state.nutritionTargets?.proteinGrams?.let(::formatProtein).orEmpty())
+    }
+    var targetFeedback by remember { mutableStateOf<String?>(null) }
     var pendingDelete by remember { mutableStateOf<NutritionEntry?>(null) }
     var showDateDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -154,6 +163,33 @@ fun NutritionScreen(
                         NutritionMetric("Calories", "$caloriesTotal kcal", Modifier.weight(1f), appVisuals.chartSeries[0])
                         NutritionMetric("Protéines", "${formatProtein(proteinTotal)} g", Modifier.weight(1f), appVisuals.chartSeries[1])
                     }
+                    val remaining = calculateNutritionRemaining(
+                        state.nutritionEntries,
+                        selectedDate.toString(),
+                        state.nutritionTargets,
+                    )
+                    if (remaining.caloriesLeft != null || remaining.proteinLeft != null) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (remaining.caloriesLeft != null) {
+                                val left = remaining.caloriesLeft
+                                NutritionMetric(
+                                    "Calories restantes",
+                                    if (left >= 0) "Reste $left kcal" else "Dépassé de ${-left} kcal",
+                                    Modifier.weight(1f),
+                                    appVisuals.chartSeries[0],
+                                )
+                            }
+                            if (remaining.proteinLeft != null) {
+                                val left = remaining.proteinLeft
+                                NutritionMetric(
+                                    "Protéines manquantes",
+                                    if (left > 0) "Manque ${formatProtein(left)} g" else "✓ Atteint",
+                                    Modifier.weight(1f),
+                                    appVisuals.chartSeries[1],
+                                )
+                            }
+                        }
+                    }
                     Text(
                         "${dayEntries.size} ${if (dayEntries.size > 1) "apports enregistrés" else "apport enregistré"}",
                         style = MaterialTheme.typography.bodySmall,
@@ -217,6 +253,57 @@ fun NutritionScreen(
                             it,
                             style = MaterialTheme.typography.bodySmall,
                             color = if (it.startsWith("Apport ")) appVisuals.success else MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
+        }
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = kawaiiContainer(2, MaterialTheme.colorScheme.surfaceContainerHighest))) {
+                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Objectifs", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Une seule saisie, suivie chaque jour. Laisse vide pour retirer un objectif.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = targetCaloriesText,
+                            onValueChange = { if (it.matches(Regex("\\d{0,5}"))) { targetCaloriesText = it; targetFeedback = null } },
+                            label = { Text("Calories cibles") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                        )
+                        OutlinedTextField(
+                            value = targetProteinText,
+                            onValueChange = { if (it.matches(Regex("\\d{0,4}([,.]\\d?)?"))) { targetProteinText = it; targetFeedback = null } },
+                            label = { Text("Protéines cibles") },
+                            suffix = { Text("g") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Button(
+                        onClick = {
+                            val result = viewModel.saveNutritionTargets(targetCaloriesText, targetProteinText)
+                            targetFeedback = if (result.isSuccess) "Objectifs enregistrés"
+                            else result.exceptionOrNull()?.message
+                            focusManager.clearFocus()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Check, null)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Enregistrer")
+                    }
+                    targetFeedback?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (it.startsWith("Objectifs ")) appVisuals.success else MaterialTheme.colorScheme.error,
                         )
                     }
                 }

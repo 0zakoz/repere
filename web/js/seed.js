@@ -40,7 +40,7 @@ export function createSeedState(today = new Date()) {
     template("session_b", "B", ["horizontal_row", "vertical_press", "back_extension", "hack_squat", "calf_raise", "rear_delt_fly"]),
   ];
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     muscles,
     exercises,
     templates,
@@ -49,6 +49,7 @@ export function createSeedState(today = new Date()) {
       trainingDays: [1, 3, 5], nextIndex: 0, scheduleCheckedThrough: date, active: true, archived: false,
     }],
     programEvents: [], workoutLogs: [], bodyWeights: [], nutritionEntries: [],
+    nutritionTargets: { caloriesKcal: null, proteinGrams: null }, weightGoalKg: null,
   };
 }
 

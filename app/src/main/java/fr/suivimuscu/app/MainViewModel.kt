@@ -15,7 +15,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
-import kotlin.math.roundToInt
 
 enum class MainTab { JOURNAL, WEIGHT, NUTRITION, TRENDS, LIBRARY }
 
@@ -234,83 +233,6 @@ internal fun stateAfterMuscleDeletion(state: AppState, muscleId: String): AppSta
             exercise.copy(muscles = exercise.muscles.filterNot { it.muscleId == muscleId })
         },
     )
-}
-
-internal fun normalizedWeightKg(value: String): Double? {    val parsed = value.trim().replace(',', '.').toDoubleOrNull() ?: return null
-    if (!parsed.isFinite() || parsed <= 0.0 || parsed > 500.0) return null
-    return (parsed * 10.0).roundToInt() / 10.0
-}
-
-internal fun previousBodyWeightEntry(
-    entries: List<BodyWeightEntry>,
-    date: LocalDate,
-): BodyWeightEntry? = entries
-    .mapNotNull { entry -> runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry } }
-    .filter { it.first.isBefore(date) }
-    .maxWithOrNull(compareBy<Pair<LocalDate, BodyWeightEntry>> { it.first }.thenBy { it.second.updatedAt })
-    ?.second
-
-internal fun calculateBodyWeightTrend(
-    entries: List<BodyWeightEntry>,
-    weeks: Int?,
-    today: LocalDate = LocalDate.now(),
-    zone: ZoneId = ZoneId.systemDefault(),
-): List<BodyWeightTrendPoint> {
-    val normalized = entries
-        .mapNotNull { entry ->
-            runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { date -> date to entry }
-        }
-        .groupBy { it.first }
-        .mapValues { (_, values) -> values.maxBy { it.second.updatedAt }.second }
-        .toSortedMap()
-    val cutoff = weeks?.let { today.minusWeeks(it.toLong()) }
-    return normalized.mapNotNull { (date, entry) ->
-        if (cutoff != null && date.isBefore(cutoff)) return@mapNotNull null
-        val windowStart = date.minusDays(6)
-        val windowValues = normalized
-            .filterKeys { !it.isBefore(windowStart) && !it.isAfter(date) }
-            .values
-            .map { it.weightKg }
-        BodyWeightTrendPoint(
-            date = date.toString(),
-            timestamp = date.atStartOfDay(zone).toInstant().toEpochMilli(),
-            weightKg = entry.weightKg,
-            average7DaysKg = windowValues.average(),
-        )
-    }
-}
-
-internal fun normalizedCalories(value: String): Int? =
-    value.trim().toIntOrNull()?.takeIf { it in 1..100_000 }
-
-internal fun normalizedProteinGrams(value: String): Double? {
-    val parsed = value.trim().replace(',', '.').toDoubleOrNull() ?: return null
-    if (!parsed.isFinite() || parsed < 0.0 || parsed > 10_000.0) return null
-    return (parsed * 10.0).roundToInt() / 10.0
-}
-
-internal fun calculateNutritionTrend(
-    entries: List<NutritionEntry>,
-    weeks: Int?,
-    today: LocalDate = LocalDate.now(),
-    zone: ZoneId = ZoneId.systemDefault(),
-): List<NutritionDayTotal> {
-    val cutoff = weeks?.let { today.minusWeeks(it.toLong()) }
-    return entries.mapNotNull { entry ->
-        runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry }
-    }
-        .filter { (date, _) -> !date.isAfter(today) && (cutoff == null || !date.isBefore(cutoff)) }
-        .groupBy({ it.first }, { it.second })
-        .toSortedMap()
-        .map { (date, dayEntries) ->
-            NutritionDayTotal(
-                date = date.toString(),
-                timestamp = date.atStartOfDay(zone).toInstant().toEpochMilli(),
-                caloriesKcal = dayEntries.sumOf { it.caloriesKcal },
-                proteinGrams = dayEntries.sumOf { it.proteinGrams },
-                entryCount = dayEntries.size,
-            )
-        }
 }
 
 internal fun calculateMusclePeriodStats(
@@ -827,6 +749,12 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
         state.copy(bodyWeights = state.bodyWeights.filterNot { it.date == date })
     }
 
+    fun saveWeightGoal(weightValue: String): Result<Unit> = runCatching {
+        val goal = if (weightValue.isBlank()) null
+        else requireNotNull(normalizedWeightKg(weightValue)) { "Objectif poids invalide" }
+        mutate { it.copy(weightGoalKg = goal) }
+    }
+
     fun bodyWeightTrend(weeks: Int?): List<BodyWeightTrendPoint> =
         calculateBodyWeightTrend(_state.value?.bodyWeights.orEmpty(), weeks)
 
@@ -859,6 +787,14 @@ class MainViewModel(private val repository: AppRepository) : ViewModel() {
 
     fun deleteNutritionEntry(entryId: String) = mutate { state ->
         state.copy(nutritionEntries = state.nutritionEntries.filterNot { it.id == entryId })
+    }
+
+    fun saveNutritionTargets(caloriesValue: String, proteinValue: String): Result<Unit> = runCatching {
+        val calories = if (caloriesValue.isBlank()) null
+        else requireNotNull(normalizedCalories(caloriesValue)) { "Objectif calories invalide" }
+        val protein = if (proteinValue.isBlank()) null
+        else requireNotNull(normalizedProteinGrams(proteinValue)) { "Objectif protéines invalide" }
+        mutate { it.copy(nutritionTargets = NutritionTargets(calories, protein)) }
     }
 
     fun nutritionTrend(weeks: Int?): List<NutritionDayTotal> =
