@@ -68,7 +68,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 ## Repères rapides
 
 - Application Android affichée : **Suivi Muscu** ; dépôt GitHub : **repere**.
-- Version actuelle : **1.10.2** (`versionCode 16`).
+- Version actuelle : **1.10.4** (`versionCode 18`).
 - Module unique : `app`.
 - État métier : `AppState`, sérialisé en JSON et stocké dans une ligne Room.
 - Schéma métier actuel : version 5 ; schéma Room : version 1.

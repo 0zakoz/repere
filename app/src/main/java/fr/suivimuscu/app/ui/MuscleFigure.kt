@@ -18,9 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +37,7 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.PathParser
@@ -56,60 +55,59 @@ private const val AUTHOR_HEIGHT = 1000f
 internal data class RegionDef(val muscleId: String, val pathData: String)
 
 private val baseShape = listOf(
-    "M0,10 C34,10 58,34 58,70 C58,104 44,128 24,140 L28,184 L0,184 Z",
-    "M0,182 C48,184 112,190 168,200 C210,208 244,220 258,240 C268,256 264,272 248,282 C230,292 212,300 200,314 C186,332 174,366 164,402 C154,436 124,456 110,474 C105,496 113,516 127,530 C107,546 79,556 53,562 C33,566 15,569 7,571 L0,571 Z",
-    "M222,228 C250,220 272,228 282,250 C290,272 293,324 294,378 C295,432 293,494 289,540 C287,566 283,584 274,582 C266,579 261,562 259,542 C255,506 251,452 247,402 C243,354 237,308 231,280 C227,260 223,242 222,228 Z",
-    "M6,569 C44,567 88,559 128,547 C140,583 145,625 141,667 C137,703 129,735 119,761 C115,787 115,811 110,837 C104,873 94,911 86,939 C102,947 114,963 118,985 L40,985 C44,965 54,949 70,939 C66,903 62,861 60,825 C54,793 46,767 40,747 C28,707 16,649 12,599 C11,587 11,577 12,569 Z",
+    "M0,14 C32,14 56,38 56,72 C56,104 40,128 20,140 L24,184 L0,184 Z",
+    "M0,182 C54,184 122,192 180,204 C220,212 250,224 261,244 C269,260 263,274 249,282 C231,292 213,300 201,314 C187,332 177,366 167,402 C157,436 129,456 115,474 C110,496 118,516 132,530 C112,546 84,556 58,562 C38,566 18,569 8,571 L0,571 Z",
+    "M220,226 C252,218 278,228 288,252 C296,274 299,328 299,384 C299,440 297,498 292,544 C289,572 281,588 270,585 C261,581 256,564 254,544 C250,508 246,454 242,404 C238,356 232,310 226,282 C222,260 220,240 220,226 Z",
+    "M8,567 C48,565 94,557 134,545 C146,581 151,623 147,665 C143,701 135,733 125,759 C121,785 121,809 116,835 C110,871 100,909 92,937 C108,945 120,961 124,983 L46,983 C50,963 60,947 76,937 C72,901 68,859 66,823 C60,791 52,765 46,745 C34,705 22,647 18,597 C17,585 17,575 18,567 Z",
 )
 
 // Toutes les régions sont disjointes (frontières nettes) pour une sélection fiable.
 
 internal val frontRegions = listOf(
-    RegionDef("upper_pecs", "M8,198 C58,204 116,212 170,226 L167,244 C115,232 60,222 8,214 Z"),
-    RegionDef("pecs", "M8,246 C56,256 112,268 162,281 C175,287 179,297 175,311 C168,333 150,345 124,349 C84,353 44,343 8,327 L8,246 Z"),
-    RegionDef("front_delts", "M182,210 C212,212 232,226 236,248 C239,268 233,284 221,290 C209,294 198,286 193,270 C188,252 186,230 187,218 Z"),
-    RegionDef("side_delts", "M240,238 C257,244 270,258 274,274 C277,288 270,298 259,300 C250,301 243,294 241,282 C239,268 239,252 240,244 Z"),
-    RegionDef("abs", "M8,360 C36,366 68,370 96,372 C102,400 104,432 100,460 C96,488 86,508 72,522 C48,528 26,526 8,520 C6,466 6,412 8,360 Z"),
-    RegionDef("biceps", "M232,304 C252,310 268,326 275,350 C281,376 283,402 281,420 C268,426 254,418 247,402 C238,376 233,340 231,318 C231,310 231,306 232,304 Z"),
-    RegionDef("forearm_flexors", "M250,444 C264,452 275,470 280,490 C285,512 287,534 285,552 C274,556 265,546 260,532 C253,508 249,480 248,460 C248,450 249,446 250,444 Z"),
-    RegionDef("adductors", "M8,575 C17,573 27,571 38,569 C40,611 39,655 34,693 C30,717 24,733 17,743 C12,731 8,715 7,697 C6,655 6,613 8,575 Z"),
-    RegionDef("quads", "M44,581 C68,577 98,567 128,553 C140,589 144,629 140,669 C136,699 127,725 115,747 C90,755 66,753 46,745 C43,703 43,655 43,611 C43,601 43,589 44,581 Z"),
+    RegionDef("upper_pecs", "M12,198 C62,204 118,212 166,226 L162,242 C112,230 60,220 12,212 Z"),
+    RegionDef("pecs", "M12,244 C60,254 114,266 158,279 C172,285 176,296 171,310 C163,332 145,344 119,348 C81,352 42,342 12,326 L12,244 Z"),
+    RegionDef("front_delts", "M180,208 C208,208 230,222 236,245 C240,265 234,281 222,287 C210,291 199,283 194,267 C189,249 187,228 188,216 Z"),
+    RegionDef("side_delts", "M240,236 C258,242 272,256 276,272 C279,286 272,296 261,298 C252,299 245,292 243,280 C241,266 240,250 241,242 Z"),
+    RegionDef("abs", "M12,358 C40,364 70,368 94,370 C100,398 102,430 98,458 C94,486 84,506 70,520 C46,526 26,524 12,518 C10,464 10,410 12,358 Z"),
+    RegionDef("biceps", "M230,300 C250,306 266,322 273,346 C279,372 281,398 279,416 C266,422 252,414 245,398 C236,372 231,336 229,314 C229,306 229,302 230,300 Z"),
+    RegionDef("forearm_flexors", "M248,440 C262,448 273,466 278,486 C283,508 285,530 283,548 C272,552 263,542 258,528 C251,504 247,476 246,456 C246,446 247,442 248,440 Z"),
+    RegionDef("adductors", "M12,573 C21,571 31,569 42,567 C44,609 43,653 38,691 C34,715 28,731 21,741 C16,729 12,713 11,695 C9,653 9,611 12,573 Z"),
+    RegionDef("quads", "M48,579 C72,575 100,565 128,551 C140,587 144,627 140,667 C136,697 129,723 117,745 C92,753 68,751 48,743 C45,701 44,653 45,609 C45,599 46,587 48,579 Z"),
 )
 
 private val frontLines = listOf(
-    "M14,192 C52,196 100,204 148,216",
-    "M10,326 C55,338 105,346 150,346",
-    "M8,360 L8,518",
-    "M8,396 C34,400 64,402 96,400",
-    "M8,430 C36,434 68,436 100,434",
-    "M8,464 C34,468 66,470 98,468",
-    "M8,496 C32,500 58,502 82,502",
-    "M102,376 C110,416 114,456 106,494",
-    "M38,760 C64,764 90,762 112,754",
-    "M78,792 C74,842 70,890 68,932",
-    "M236,406 C250,412 264,410 278,402",
-    "M262,574 C270,578 278,576 286,570",
-    "M38,942 C62,946 88,942 110,934",
+    "M16,192 C54,196 102,204 148,216",
+    "M14,324 C58,336 106,344 148,344",
+    "M12,360 L12,516",
+    "M12,394 C38,398 66,400 92,398",
+    "M12,428 C40,432 70,434 96,432",
+    "M12,462 C38,466 68,468 94,466",
+    "M98,374 C106,414 110,454 102,492",
+    "M40,758 C66,762 92,760 112,752",
+    "M80,790 C76,840 72,888 70,930",
+    "M234,404 C248,410 262,408 276,400",
+    "M260,566 C268,570 276,568 284,562",
+    "M42,940 C64,944 88,940 108,932",
 )
 
 internal val backRegions = listOf(
-    RegionDef("traps", "M8,184 C58,186 124,196 180,212 C162,242 134,268 102,288 C74,304 44,314 18,318 C14,296 10,276 8,258 C6,232 6,206 8,184 Z"),
-    RegionDef("rear_delts", "M196,216 C226,220 254,234 268,254 C275,268 269,282 256,290 C243,296 228,292 219,280 C208,264 200,242 197,226 Z"),
-    RegionDef("lats", "M8,326 C44,334 88,348 126,366 C152,378 168,396 172,416 C173,436 168,454 157,468 C144,482 126,488 104,488 C70,476 34,454 8,430 C6,396 6,360 8,326 Z"),
-    RegionDef("lower_back", "M8,492 C28,498 48,506 66,516 C76,530 80,542 78,552 C58,560 34,562 8,560 C6,536 6,514 8,492 Z"),
-    RegionDef("triceps", "M234,308 C254,314 270,330 277,354 C283,380 285,406 283,424 C270,430 256,422 249,406 C240,380 235,342 233,320 C233,312 233,310 234,308 Z"),
-    RegionDef("forearm_extensors", "M250,448 C264,456 275,474 280,494 C285,516 287,538 285,556 C274,560 265,550 260,536 C253,512 249,484 248,464 C248,454 249,450 250,448 Z"),
-    RegionDef("glutes", "M8,558 C36,552 68,552 98,560 C128,568 150,582 158,602 C163,618 155,632 140,640 C112,649 80,651 52,645 C34,641 18,633 8,621 C6,599 6,577 8,558 Z"),
-    RegionDef("hamstrings", "M10,654 C50,650 95,644 132,632 C146,664 152,698 148,728 C144,752 134,772 122,786 C90,792 56,790 26,782 C18,744 13,702 12,664 C12,660 11,656 10,654 Z"),
-    RegionDef("calves", "M40,800 C62,792 84,796 98,810 C108,830 110,858 104,886 C98,914 90,936 78,948 C62,950 50,942 44,928 C37,896 35,860 36,828 C37,816 38,808 40,800 Z"),
+    RegionDef("traps", "M12,182 C62,184 128,194 182,210 C164,240 136,266 104,286 C76,302 46,312 22,316 C18,294 14,274 12,256 C10,230 10,204 12,182 Z"),
+    RegionDef("rear_delts", "M194,212 C224,216 252,230 266,250 C273,264 267,278 254,286 C241,292 226,288 217,276 C206,260 198,238 195,222 Z"),
+    RegionDef("lats", "M12,324 C48,332 92,346 130,364 C156,376 172,394 176,414 C177,434 172,452 161,466 C148,480 130,486 108,484 C74,472 38,450 12,426 C10,392 10,358 12,324 Z"),
+    RegionDef("lower_back", "M12,490 C32,496 52,504 70,514 C80,528 84,540 82,550 C62,558 38,560 12,558 C10,534 10,512 12,490 Z"),
+    RegionDef("triceps", "M232,304 C252,310 268,326 275,350 C281,376 283,402 281,420 C268,426 254,418 247,402 C238,376 233,338 231,316 C231,308 231,306 232,304 Z"),
+    RegionDef("forearm_extensors", "M248,444 C262,452 273,470 278,490 C283,512 285,534 283,552 C272,556 263,546 258,532 C251,508 247,480 246,460 C246,450 247,446 248,446 Z"),
+    RegionDef("glutes", "M12,556 C40,550 72,550 100,558 C126,566 142,580 148,598 C152,612 146,624 134,631 C106,640 76,642 50,636 C32,632 20,624 12,612 C10,593 10,573 12,556 Z"),
+    RegionDef("hamstrings", "M12,656 C52,652 94,648 128,636 C142,668 146,702 142,732 C138,756 130,776 120,788 C90,794 58,792 28,784 C20,746 15,704 14,666 C14,662 13,658 12,656 Z"),
+    RegionDef("calves", "M44,796 C66,788 88,792 102,806 C112,826 114,854 108,882 C102,910 94,932 82,944 C66,946 54,938 48,924 C41,892 39,856 40,824 C41,812 42,804 44,796 Z"),
 )
 
 private val backLines = listOf(
-    "M6,192 C10,306 10,432 6,552",
-    "M36,356 C66,378 96,418 112,452",
-    "M24,636 C64,646 112,646 144,634",
-    "M38,760 C64,764 90,762 112,754",
-    "M72,898 C76,916 78,928 78,938",
+    "M8,192 C12,306 12,432 8,552",
+    "M38,354 C68,376 98,416 114,450",
+    "M28,634 C66,644 112,644 142,632",
+    "M40,758 C66,762 92,760 112,752",
+    "M74,896 C78,914 80,926 80,936",
 )
 
 private class ParsedFigure(
@@ -147,7 +145,6 @@ fun MuscleFigure(
     modifier: Modifier = Modifier,
 ) {
     var selectedId by remember { mutableStateOf<String?>(null) }
-    var view by remember { mutableStateOf(0) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val maxSets = stats.values.maxOfOrNull { it.weightedSets } ?: 0.0
 
@@ -171,47 +168,47 @@ fun MuscleFigure(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            PrimaryTabRow(selectedTabIndex = view) {
-                listOf("Avant", "Dos").forEachIndexed { index, label ->
-                    Tab(selected = view == index, onClick = { view = index }, text = { Text(label) })
-                }
-            }
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .height(336.dp)
+                    .height(234.dp)
                     .onSizeChanged { canvasSize = it },
             ) {
-                val layout = remember(canvasSize) {
+                val layouts = remember(canvasSize) {
                     if (canvasSize.width <= 0 || canvasSize.height <= 0) null
                     else {
                         val w = canvasSize.width.toFloat()
                         val h = canvasSize.height.toFloat()
-                        val scale = min(h / (AUTHOR_HEIGHT + 16f), (w * 0.92f) / 620f)
-                        FigureLayout(scale, w / 2f, (h - AUTHOR_HEIGHT * scale) / 2f)
+                        val scale = min(h / (AUTHOR_HEIGHT + 16f), (w * 0.44f) / 310f)
+                        listOf(
+                            FigureLayout(scale, w * 0.25f, (h - AUTHOR_HEIGHT * scale) / 2f),
+                            FigureLayout(scale, w * 0.75f, (h - AUTHOR_HEIGHT * scale) / 2f),
+                        )
                     }
                 }
-                val baseFill = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .35f)
-                val outlineColor = MaterialTheme.colorScheme.outline.copy(alpha = .55f)
+                val baseFill = MaterialTheme.colorScheme.surfaceVariant
+                val outlineColor = MaterialTheme.colorScheme.outline
                 val selectionColor = visuals.success
-                val activeFigure = if (view == 0) figures.first else figures.second
                 Canvas(
                     Modifier
                         .fillMaxSize()
-                        .pointerInput(figures, layout, maxSets, view) {
+                        .pointerInput(figures, layouts, maxSets) {
                             detectTapGestures { offset ->
-                                val l = layout ?: return@detectTapGestures
-                                val x = abs(offset.x - l.centerX) / l.scale
-                                val y = (offset.y - l.topY) / l.scale
-                                selectedId = activeFigure.hitRegions
-                                    .firstOrNull { (_, region) -> region.contains(x.toInt(), y.toInt()) }
-                                    ?.first
+                                val ls = layouts ?: return@detectTapGestures
+                                selectedId = ls.firstNotNullOfOrNull { l ->
+                                    val x = abs(offset.x - l.centerX) / l.scale
+                                    val y = (offset.y - l.topY) / l.scale
+                                    val figure = if (l.centerX < canvasSize.width / 2f) figures.first else figures.second
+                                    figure.hitRegions
+                                        .firstOrNull { (_, region) -> region.contains(x.toInt(), y.toInt()) }
+                                        ?.first
+                                }
                             }
                         },
                 ) {
-                    val l = layout ?: return@Canvas
-                    val lineWidth = 1.1.dp.toPx() / l.scale
-                    val selectionWidth = 2.2.dp.toPx() / l.scale
+                    val ls = layouts ?: return@Canvas
+                    val lineWidth = 1.7.dp.toPx() / ls.first().scale
+                    val selectionWidth = 3.2.dp.toPx() / ls.first().scale
                     fun drawFigure(l: FigureLayout, figure: ParsedFigure) {
                         listOf(false, true).forEach { mirror ->
                             withTransform({
@@ -235,8 +232,13 @@ fun MuscleFigure(
                         }
                     }
 
-                    drawFigure(l, activeFigure)
+                    drawFigure(ls[0], figures.first)
+                    drawFigure(ls[1], figures.second)
                 }
+            }
+            Row(Modifier.fillMaxWidth()) {
+                Text("Avant", Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Dos", Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             val selectedKey = selectedId
             val selectedFraction = selectedKey?.let(::fractionOf)

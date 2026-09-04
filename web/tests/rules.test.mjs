@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createSeedState } from "../js/seed.js";
 import { normalizeState } from "../js/state.js";
 import { adoptLegacyTargets, backupSummary, completeWorkout, hasNutritionTargets, isSetValid, lastPerformedExercise, missedSlotCount, moveWorkoutExercise, normalizeTargetCalories, normalizeTargetProtein, nutritionRemaining, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend, workoutWithDuration, workoutWithSetRest } from "../js/rules.js";
-import { MUSCLE_REGIONS, heatFraction } from "../js/muscleFigure.js";
+import { MUSCLE_REGIONS, heatFraction, renderMuscleFigure } from "../js/muscleFigure.js";
 import { markdownExport, nutritionCsv, workoutCsv } from "../js/exporters.js";
 
 test("le seed correspond au programme Android", () => {
@@ -190,4 +190,21 @@ test("la fraction heatmap suit la parité Android", () => {
   assert.equal(heatFraction(5, 0), 0);
   assert.equal(heatFraction(2.5, 10), 0.25);
   assert.equal(heatFraction(15, 10), 1);
+});
+
+test("la carte affiche avant et dos côte à côte avec détail", () => {
+  const muscles = [{ id: "quads", name: "Quadriceps" }, { id: "abs", name: "Abdominaux" }];
+  const rows = [
+    { muscle: muscles[0], weightedSets: 4, averageReps: 8, averageRir: 1 },
+    { muscle: muscles[1], weightedSets: 0, averageReps: null, averageRir: null },
+  ];
+  const html = renderMuscleFigure({ muscles, rows, selectedId: "quads" });
+  assert.equal(html.split('class="muscle-figure"').length - 1, 2);
+  assert.equal(html.split('data-id="quads"').length - 1, 2);
+  assert.ok(html.includes("Avant") && html.includes("Dos"));
+  assert.ok(html.includes("Quadriceps — 4,0 séries pond."));
+  const zero = renderMuscleFigure({ muscles, rows, selectedId: "abs" });
+  assert.ok(zero.includes("aucune série pondérée"));
+  const none = renderMuscleFigure({ muscles, rows, selectedId: null });
+  assert.ok(!none.includes("séries pond.") && !none.includes("aucune série"));
 });

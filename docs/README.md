@@ -31,7 +31,7 @@ alors la documentation dans la même modification.
 - branche principale : `main` ;
 - libellé Android actuel : **Suivi Muscu** ;
 - package et `applicationId` : `fr.suivimuscu.app` ;
-- version : **1.10.2**, `versionCode 16` ;
+- version : **1.10.4**, `versionCode 18` ;
 - PWA publiée : `https://0zakoz.github.io/repere/`, version **1.12.0** ;
 - date de cet état des lieux : 1er septembre 2026.
 

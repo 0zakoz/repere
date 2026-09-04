@@ -3,7 +3,7 @@
 Repère est un carnet personnel de musculation, de poids et de nutrition. Le dépôt contient
 deux clients hors ligne partageant le même modèle de sauvegarde :
 
-- l’application Android **Suivi Muscu**, version **1.10.2** (`versionCode 16`) ;
+- l’application Android **Suivi Muscu**, version **1.10.4** (`versionCode 18`) ;
 - la PWA **Repère Web**, version **1.12.0**, destinée notamment à l’iPhone.
 
 Les deux versions sont en français, mono-utilisateur et sans compte. Les données restent sur

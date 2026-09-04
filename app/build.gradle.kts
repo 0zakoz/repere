@@ -23,8 +23,8 @@ android {
         applicationId = "fr.suivimuscu.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 16
-        versionName = "1.10.2"
+        versionCode = 18
+        versionName = "1.10.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

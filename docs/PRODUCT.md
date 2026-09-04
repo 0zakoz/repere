@@ -104,9 +104,8 @@ Toutes les vues ignorent les brouillons et les séances supprimées, avec des fi
 - **Séances** : synthèse moyenne par modèle avec durée, séries réalisées/prévues, taux de
   réalisation, RIR, repos et séries moyennes par exercice, puis détail de chaque séance.
 - **Muscles** : séries pondérées par semaine et sur la période, répétitions et RIR moyens,
-  barres horizontales et carte musculaire tactile avec onglets avant/dos. Toucher une zone
-  affiche son volume pondéré, ses répétitions et son RIR moyens. Les poids sont principal ×1,
-  secondaire ×0,5 et tertiaire ×0,25.
+  barres horizontales et carte musculaire tactile avec vues avant et dos côte à côte. Toucher une zone affiche son volume pondéré, ses répétitions et son
+  RIR moyens. Les poids sont principal ×1, secondaire ×0,5 et tertiaire ×0,25.
 
 Les tendances musculaires appliquent volontairement les affectations musculaires actuelles
 de l’exercice à son historique. Modifier une affectation recalcule donc le passé ; si
