@@ -21,6 +21,10 @@
 .kawaii-surfaces{display:flex;gap:4px;margin-top:8px}.kawaii-surfaces i{flex:1;height:8px;border-radius:99px}
 .kawaii-preview-mascots{font-size:1rem;margin-top:6px;display:flex;align-items:center;gap:3px}.kawaii-preview-mascots svg{width:18px;height:18px}
 .field small{color:var(--muted);font-size:.78rem}
+.muscle-figure{display:block;width:100%;max-width:300px;height:auto;margin:4px auto}
+.heat-legend{margin-top:10px}
+.heat-bar{height:10px;border-radius:99px;background:linear-gradient(90deg,color-mix(in srgb,var(--primary) 6%,var(--surface-2)),var(--primary))}
+.heat-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:.72rem;margin-top:3px}
 .mascot svg{width:1.25em;height:1.25em;vertical-align:-.2em}
 .field{min-width:0}
 .field input,.field textarea,.field select{max-width:100%;min-width:0}

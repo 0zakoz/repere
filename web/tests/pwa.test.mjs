@@ -12,7 +12,7 @@ test("le manifeste configure une application autonome dans le scope GitHub Pages
 
 test("le service worker précharge le cœur applicatif et les polices", async () => {
   const worker = await readFile(new URL("../sw.js", import.meta.url), "utf8");
-  for (const asset of ["index.html","styles.css","js/app.js","js/nutritionView.js","nunito-variable.ttf","fredoka-variable.ttf"]) {
+  for (const asset of ["index.html","styles.css","js/app.js","js/nutritionView.js","js/muscleFigure.js","nunito-variable.ttf","fredoka-variable.ttf"]) {
     assert.match(worker,new RegExp(asset.replaceAll(".","\\.")));
   }
 });

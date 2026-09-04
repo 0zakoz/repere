@@ -11,6 +11,7 @@ import { horizontalBars, lineChart } from "./charts.js";
 import { markdownExport, nutritionCsv, weightCsv, workoutCsv } from "./exporters.js";
 import { button, catSvg, dialog, downloadFile, emptyState, formatDate, formatTime, header, html, icon, kawaii, kawaiiFace, number, rangeChips, toast } from "./ui.js";
 import { renderNutritionView } from "./nutritionView.js";
+import { renderMuscleFigure } from "./muscleFigure.js";
 
 const root = document.querySelector("#app");
 let state;
@@ -18,6 +19,8 @@ let appearance = loadAppearance();
 let tab = "journal";
 let libraryTab = "programs";
 let trendTab = "exercises";
+let muscleView = "front";
+let selectedMuscleId = null;
 let range = 12;
 let modal = null;
 let selectedWeightDate = localDate();
@@ -184,7 +187,7 @@ function renderExerciseTrends() {
 }
 
 function renderSessionTrends(){const cards=state.templates.map(template=>({template,stats:sessionStats(state,template.id,range)})).filter(x=>x.stats);if(!cards.length)return emptyState("📊","Pas encore de séance","Les moyennes apparaîtront après une séance terminée.");return cards.map(({template,stats})=>`<section class="card"><h2>Séance ${html(template.name)}</h2><p class="subtitle">${stats.sessionCount} séance(s) sur la période</p><div class="metrics"><div class="metric"><small>Durée moyenne</small><strong>${formatDuration(stats.averageDurationSeconds)}</strong></div><div class="metric"><small>Réalisation</small><strong>${Math.round(stats.completionRate*100)} %</strong></div><div class="metric"><small>Séries moy.</small><strong>${number(stats.averageCompletedSets)} / ${number(stats.averagePlannedSets)}</strong></div><div class="metric"><small>RIR moyen</small><strong>${stats.averageRir==null?"—":number(stats.averageRir)}</strong></div></div>${horizontalBars(stats.exercises.map(ex=>({label:ex.exerciseName,value:ex.averageCompletedSets,meta:`${number(ex.averageCompletedSets)} / ${number(ex.averagePlannedSets)} séries`})),Math.max(...stats.exercises.map(ex=>ex.averagePlannedSets),1))}</section>`).join("");}
-function renderMuscleTrends(){const stats=muscleStats(state,range).filter(row=>row.weightedSets>0);if(!stats.length)return emptyState("🫶","Pas encore de volume","Les sollicitations musculaires apparaîtront ici.");return `<section class="card"><h2>Volume musculaire pondéré</h2><p class="subtitle">Principal ×1 · secondaire ×0,5 · tertiaire ×0,25</p>${horizontalBars(stats.map(row=>({label:row.muscle.name,value:row.weightedSets,meta:`${number(row.averageReps??0)} reps moy. · RIR ${row.averageRir==null?"—":number(row.averageRir)}`})))}</section>`;}
+function renderMuscleTrends(){const rows=muscleStats(state,range);const active=rows.filter(row=>row.weightedSets>0);if(!active.length)return emptyState("🫶","Pas encore de volume","Les sollicitations musculaires apparaîtront ici.");return `<section class="card"><h2>Volume musculaire pondéré</h2><p class="subtitle">Principal ×1 · secondaire ×0,5 · tertiaire ×0,25</p>${horizontalBars(active.map(row=>({label:row.muscle.name,value:row.weightedSets,meta:`${number(row.averageReps??0)} reps moy. · RIR ${row.averageRir==null?"—":number(row.averageRir)}`})))}</section>${renderMuscleFigure({ muscles: state.muscles, rows, view: muscleView, selectedId: selectedMuscleId })}`;}
 
 function renderLibrary(){const tabs=[["programs","Programmes"],["templates","Séances"],["exercises","Exercices"],["muscles","Muscles"]];return `<section class="screen">${header("Bibliothèque","Tout reste modifiable.","","🎀",appearance.theme)}<div class="tabs">${tabs.map(([id,label])=>`<button class="${libraryTab===id?"active":""}" data-action="library-tab" data-tab="${id}">${label}</button>`).join("")}</div>${renderLibraryList()}</section>`;}
 function renderLibraryList(){const config={programs:{label:"programme",items:state.programs,title:x=>x.name,sub:x=>`${x.templateCycle.length} séance(s) · ${x.active?"Actif":"Inactif"}${x.archived?" · Archivé":""}`},templates:{label:"séance",items:state.templates,title:x=>x.name,sub:x=>`${x.exercises.length} exercice(s)${x.archived?" · Archivée":""}`},exercises:{label:"exercice",items:state.exercises,title:x=>x.name,sub:x=>`${x.defaultRepMin}–${x.defaultRepMax} reps · ${x.muscles.length} muscle(s)${x.archived?" · Archivé":""}`},muscles:{label:"muscle",items:state.muscles,title:x=>x.name,sub:x=>x.archived?"Archivé":"Actif"}}[libraryTab];return `${button(`Créer un ${config.label}`,"create-library",{kind:"secondary",iconName:"add",extra:`data-kind="${libraryTab}"`})}<div class="section-title"><h2>${config.items.length} élément(s)</h2></div><div class="list">${config.items.map((item,i)=>`<article class="list-item ${tinted(hashStr(item.id))}">${mascotBadge(mascotFor(hashStr(item.id)), hashStr(item.id))}<div class="grow"><strong>${html(config.title(item))}${item.active?" · ★":""}</strong><small>${html(config.sub(item))}</small></div><button class="icon-btn" data-action="edit-library" data-kind="${libraryTab}" data-id="${item.id}">${icon("edit")}</button><button class="icon-btn" data-action="archive-library" data-kind="${libraryTab}" data-id="${item.id}">${item.archived?"↻":"◎"}</button><button class="icon-btn" data-action="delete-library" data-kind="${libraryTab}" data-id="${item.id}">${icon("delete")}</button></article>`).join("")}</div>`;}
@@ -282,6 +285,8 @@ async function onClick(event){if(event.target.classList?.contains("dialog-backdr
   else if(action==="edit-nutrition"){editingNutritionId=target.dataset.id;render()}
   else if(action==="delete-nutrition")confirmAction("Supprimer cet apport ?","Le total quotidien sera recalculé.",()=>persist({...state,nutritionEntries:state.nutritionEntries.filter(x=>x.id!==target.dataset.id)}))
   else if(action==="trend-tab"){trendTab=target.dataset.tab;render()}
+  else if(action==="muscle-view"){muscleView=target.dataset.view;render()}
+  else if(action==="select-muscle"){const id=target.dataset.id||null;selectedMuscleId=selectedMuscleId===id?null:id;render()}
   else if(action==="library-tab"){libraryTab=target.dataset.tab;render()}
   else if(action==="create-library"){modal={type:"library-form",kind:target.dataset.kind,id:null};render()}
   else if(action==="edit-library"){modal={type:"library-form",kind:target.dataset.kind,id:target.dataset.id};render()}

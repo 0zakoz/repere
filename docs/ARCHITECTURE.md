@@ -81,7 +81,8 @@ Room et la version du JSON sont donc indépendantes.
 - `TrendsScreen.kt` : sélecteurs et présentations des trois familles de tendances.
 - `LibraryScreen.kt` : CRUD, archivage et activation des éléments de bibliothèque.
 - `Charts.kt` : graphiques Canvas réutilisés pour les exercices et barres musculaires.
-- `MuscleFigure.kt` : carte musculaire vectorielle dessinée en Compose Canvas.
+- `MuscleFigure.kt` : carte musculaire vectorielle dessinée en Compose Canvas, onglets
+  avant/dos et sélection tactile d’une zone.
 - `Theme.kt` : dix variantes Material 3, formes, typographies, jetons visuels sémantiques et
   composants décoratifs Kawaii partagés (fond, surfaces, mascottes et icônes de navigation).
 - `AppearanceSettings.kt` : galerie des cinq thèmes et choix clair/sombre/système.
@@ -150,6 +151,7 @@ leurs licences OFL afin de rester disponibles hors ligne.
   | Poids (validation, préremplissage, moyenne 7 j) | `WeightRules.kt` | `js/rules.js` (`normalizeWeight`, `weightTrend`) |
   | Nutrition (validation, cumul, restes aux objectifs) | `NutritionRules.kt` | `js/rules.js` (+ `adoptLegacyTargets`) |
   | Tendances séances/muscles | `MainViewModel.kt` (`calculate*`) | `js/rules.js` (`sessionStats`, `muscleStats`) |
+  | Carte musculaire (tracés partagés) | `MuscleFigure.kt` (Canvas + `RegionDef`) | `js/muscleFigure.js` (`MUSCLE_REGIONS`) |
   | Migrations métier | `StateMigrations.kt` | `js/state.js` |
   | Seed premier lancement | `SeedData.kt` | `js/seed.js` |
   | Exports CSV/Markdown | `Exporters.kt`, `MarkdownExporter.kt` | `js/exporters.js` |

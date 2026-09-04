@@ -56,7 +56,7 @@ est récupérée par le service worker ; elle peut demander une fermeture/réouv
 - `index.html`, `manifest.webmanifest`, `sw.js` : coquille installable et cache hors ligne ;
 - `js/state.js`, `seed.js`, `store.js` : schéma, migration, seed et IndexedDB ;
 - `js/rules.js` : règles métier pures ;
-- `js/app.js`, `nutritionView.js`, `ui.js`, `charts.js`, `styles.css` : interface mobile et thèmes ;
+- `js/app.js`, `nutritionView.js`, `muscleFigure.js`, `ui.js`, `charts.js`, `styles.css` : interface mobile et thèmes ;
 - `js/exporters.js` : CSV, Markdown et sauvegarde côté interface ;
 - `tests/` : tests Node du métier et de la configuration PWA ;
 - `scripts/serve.mjs` : serveur statique local sans dépendance.

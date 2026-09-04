@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createSeedState } from "../js/seed.js";
 import { normalizeState } from "../js/state.js";
 import { adoptLegacyTargets, backupSummary, completeWorkout, hasNutritionTargets, isSetValid, lastPerformedExercise, missedSlotCount, moveWorkoutExercise, normalizeTargetCalories, normalizeTargetProtein, nutritionRemaining, nutritionTrend, saveNutrition, saveWeight, skipMissedSlots, startWorkout, weightTrend, workoutWithDuration, workoutWithSetRest } from "../js/rules.js";
+import { MUSCLE_REGIONS, heatFraction } from "../js/muscleFigure.js";
 import { markdownExport, nutritionCsv, workoutCsv } from "../js/exporters.js";
 
 test("le seed correspond au programme Android", () => {
@@ -167,4 +168,26 @@ test("les exports excluent les séries non réalisées et documentent la nutriti
   assert.match(weighedMd,/\+110\.0 g/);
   assert.match(weighedMd,/Écart objectif/);
   assert.match(weighedMd,/\+4\.7 kg/);
+});
+
+test("chaque muscle a exactement une région sur la carte", () => {
+  const ids = [...MUSCLE_REGIONS.front, ...MUSCLE_REGIONS.back].map(region => region.id);
+  assert.equal(ids.length, 18);
+  assert.deepEqual(new Set(ids), new Set([
+    "pecs", "upper_pecs", "lats", "traps", "lower_back",
+    "front_delts", "side_delts", "rear_delts", "biceps", "triceps",
+    "forearm_flexors", "forearm_extensors", "quads", "hamstrings",
+    "glutes", "adductors", "calves", "abs",
+  ]));
+  for (const region of [...MUSCLE_REGIONS.front, ...MUSCLE_REGIONS.back]) {
+    assert.match(region.d, /^M/);
+    assert.match(region.d, /Z$/);
+  }
+});
+
+test("la fraction heatmap suit la parité Android", () => {
+  assert.equal(heatFraction(0, 10), 0);
+  assert.equal(heatFraction(5, 0), 0);
+  assert.equal(heatFraction(2.5, 10), 0.25);
+  assert.equal(heatFraction(15, 10), 1);
 });
